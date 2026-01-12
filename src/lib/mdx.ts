@@ -9,29 +9,51 @@ export interface ContentMeta {
   title: string;
   description?: string;
   date?: string;
+  order?: number;
 }
 
 export interface ContentItem extends ContentMeta {
   content: string;
 }
 
-export function getContentDirectory(locale: Locale, type: "docs" | "blog") {
-  return path.join(contentDirectory, locale, type);
+/**
+ * Get content directory path
+ * New structure: src/content/docs/ (with .zh.mdx for Chinese)
+ */
+export function getContentDirectory(type: "docs" | "blog") {
+  return path.join(contentDirectory, type);
 }
 
+/**
+ * Get all content slugs for a given type and locale
+ * - English: file.mdx
+ * - Chinese: file.zh.mdx
+ */
 export function getContentSlugs(locale: Locale, type: "docs" | "blog") {
-  const dir = getContentDirectory(locale, type);
+  const dir = getContentDirectory(type);
 
   if (!fs.existsSync(dir)) {
     return [];
   }
 
-  return fs
-    .readdirSync(dir)
-    .filter((file) => /\.mdx?$/.test(file))
-    .map((file) => file.replace(/\.mdx?$/, ""));
+  const files = fs.readdirSync(dir);
+  
+  if (locale === "zh") {
+    // For Chinese, look for .zh.mdx files
+    return files
+      .filter((file) => /\.zh\.mdx?$/.test(file))
+      .map((file) => file.replace(/\.zh\.mdx?$/, ""));
+  } else {
+    // For English, look for files without .zh suffix
+    return files
+      .filter((file) => /\.mdx?$/.test(file) && !/\.zh\.mdx?$/.test(file))
+      .map((file) => file.replace(/\.mdx?$/, ""));
+  }
 }
 
+/**
+ * Get all content paths for static generation
+ */
 export function getAllContentPaths(type: "docs" | "blog") {
   const locales: Locale[] = ["en", "zh"];
   const paths: { locale: Locale; slug: string }[] = [];
@@ -46,21 +68,53 @@ export function getAllContentPaths(type: "docs" | "blog") {
   return paths;
 }
 
+/**
+ * Get content by slug and locale
+ * - English: looks for {slug}.mdx or {slug}.md
+ * - Chinese: looks for {slug}.zh.mdx or {slug}.zh.md
+ */
 export async function getContentBySlug(
   locale: Locale,
   type: "docs" | "blog",
   slug: string
 ): Promise<ContentItem | null> {
-  const dir = getContentDirectory(locale, type);
-  const mdxPath = path.join(dir, `${slug}.mdx`);
-  const mdPath = path.join(dir, `${slug}.md`);
-
+  const dir = getContentDirectory(type);
+  
   let filePath = "";
-  if (fs.existsSync(mdxPath)) {
-    filePath = mdxPath;
-  } else if (fs.existsSync(mdPath)) {
-    filePath = mdPath;
+  
+  if (locale === "zh") {
+    // Chinese: look for .zh.mdx or .zh.md
+    const zhMdxPath = path.join(dir, `${slug}.zh.mdx`);
+    const zhMdPath = path.join(dir, `${slug}.zh.md`);
+    
+    if (fs.existsSync(zhMdxPath)) {
+      filePath = zhMdxPath;
+    } else if (fs.existsSync(zhMdPath)) {
+      filePath = zhMdPath;
+    } else {
+      // Fallback to English version if Chinese doesn't exist
+      const enMdxPath = path.join(dir, `${slug}.mdx`);
+      const enMdPath = path.join(dir, `${slug}.md`);
+      
+      if (fs.existsSync(enMdxPath)) {
+        filePath = enMdxPath;
+      } else if (fs.existsSync(enMdPath)) {
+        filePath = enMdPath;
+      }
+    }
   } else {
+    // English: look for .mdx or .md (without .zh)
+    const mdxPath = path.join(dir, `${slug}.mdx`);
+    const mdPath = path.join(dir, `${slug}.md`);
+    
+    if (fs.existsSync(mdxPath)) {
+      filePath = mdxPath;
+    } else if (fs.existsSync(mdPath)) {
+      filePath = mdPath;
+    }
+  }
+  
+  if (!filePath) {
     return null;
   }
 
@@ -72,8 +126,39 @@ export async function getContentBySlug(
     title: meta.title || slug,
     description: meta.description,
     date: meta.date,
+    order: meta.order ? parseInt(meta.order, 10) : undefined,
     content,
   };
+}
+
+/**
+ * Get all docs with metadata for sidebar/navigation
+ */
+export async function getAllDocsMetadata(locale: Locale): Promise<ContentMeta[]> {
+  const slugs = getContentSlugs(locale, "docs");
+  const docs: ContentMeta[] = [];
+
+  for (const slug of slugs) {
+    const content = await getContentBySlug(locale, "docs", slug);
+    if (content) {
+      docs.push({
+        slug: content.slug,
+        title: content.title,
+        description: content.description,
+        order: content.order,
+      });
+    }
+  }
+
+  // Sort by order if available, otherwise by slug
+  return docs.sort((a, b) => {
+    if (a.order !== undefined && b.order !== undefined) {
+      return a.order - b.order;
+    }
+    if (a.order !== undefined) return -1;
+    if (b.order !== undefined) return 1;
+    return a.slug.localeCompare(b.slug);
+  });
 }
 
 function parseFrontmatter(content: string): {

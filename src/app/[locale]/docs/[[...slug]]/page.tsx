@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getTranslations, setRequestLocale } from "next-intl/server";
-import { getContentBySlug, getContentSlugs } from "@/lib/mdx";
+import { setRequestLocale } from "next-intl/server";
+import { getContentBySlug, getAllDocsMetadata } from "@/lib/mdx";
 import { routing, type Locale } from "@/i18n/routing";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { DocsSidebar, MobileDocsSidebar } from "@/components/DocsSidebar";
+import { DocsNavigation } from "@/components/DocsNavigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { useMDXComponents } from "../../../../../mdx-components";
 
@@ -11,10 +13,11 @@ export function generateStaticParams() {
   const paths: { locale: string; slug: string[] }[] = [];
 
   for (const locale of routing.locales) {
-    const slugs = getContentSlugs(locale, "docs");
-    for (const slug of slugs) {
-      paths.push({ locale, slug: [slug] });
-    }
+    const defaultSlug = "overview";
+    paths.push({ locale, slug: [defaultSlug] });
+    paths.push({ locale, slug: ["what-are-skills"] });
+    paths.push({ locale, slug: ["specification"] });
+    paths.push({ locale, slug: ["integrate-skills"] });
     paths.push({ locale, slug: [] });
   }
 
@@ -28,11 +31,10 @@ export default async function DocsPage({
 }) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("docs");
-  const nav = await getTranslations("nav");
 
-  const slugPath = slug?.join("/") || "getting-started";
+  const slugPath = slug?.join("/") || "overview";
   const content = await getContentBySlug(locale as Locale, "docs", slugPath);
+  const allDocs = await getAllDocsMetadata(locale as Locale);
 
   if (!content && slug && slug.length > 0) {
     notFound();
@@ -43,10 +45,16 @@ export default async function DocsPage({
 
   const components = useMDXComponents({});
 
+  const navLabels = {
+    home: locale === "zh" ? "首页" : "Home",
+    docs: locale === "zh" ? "文档" : "Docs",
+    backToHome: locale === "zh" ? "返回首页" : "Back to Home",
+  };
+
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950">
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800">
-        <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
+        <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link
               href={homePath}
@@ -59,13 +67,21 @@ export default async function DocsPage({
                 href={homePath}
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
-                {nav("home")}
+                {navLabels.home}
               </Link>
               <Link
-                href={`${docsPath}/getting-started`}
+                href={`${docsPath}/overview`}
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
-                {nav("docs")}
+                {navLabels.docs}
+              </Link>
+              <Link
+                href="https://github.com/agentskills/agentskills"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+              >
+                GitHub
               </Link>
             </div>
           </div>
@@ -73,39 +89,62 @@ export default async function DocsPage({
         </nav>
       </header>
 
-      <main className="pt-24 pb-20 max-w-4xl mx-auto px-6">
-        <div className="mb-8">
-          <Link
-            href={homePath}
-            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
-          >
-            ← {t("backToHome")}
-          </Link>
-        </div>
+      <div className="pt-24 pb-20 max-w-7xl mx-auto px-6">
+        <div className="flex gap-12">
+          <DocsSidebar
+            docs={allDocs}
+            locale={locale}
+            currentSlug={slugPath}
+          />
 
-        {content ? (
-          <article className="prose prose-zinc dark:prose-invert max-w-none">
-            <MDXRemote source={content.content} components={components} />
-          </article>
-        ) : (
-          <div className="text-center py-20">
-            <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-4">
-              {t("title")}
-            </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 mb-8">
-              Select a document to view
-            </p>
-            <div className="flex flex-col gap-2 items-center">
+          <main className="flex-1 min-w-0">
+            <MobileDocsSidebar
+              docs={allDocs}
+              locale={locale}
+              currentSlug={slugPath}
+            />
+
+            <div className="mb-6">
               <Link
-                href={`${docsPath}/getting-started`}
-                className="text-blue-600 hover:underline dark:text-blue-400"
+                href={homePath}
+                className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
               >
-                Getting Started
+                ← {navLabels.backToHome}
               </Link>
             </div>
-          </div>
-        )}
-      </main>
+
+            {content ? (
+              <>
+                <article className="prose prose-zinc dark:prose-invert max-w-none prose-headings:scroll-mt-24 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-code:before:content-none prose-code:after:content-none">
+                  <MDXRemote source={content.content} components={components} />
+                </article>
+                <DocsNavigation
+                  docs={allDocs}
+                  currentSlug={slugPath}
+                  locale={locale}
+                />
+              </>
+            ) : (
+              <div className="text-center py-20">
+                <h1 className="text-3xl font-bold text-zinc-900 dark:text-white mb-4">
+                  {locale === "zh" ? "文档" : "Documentation"}
+                </h1>
+                <p className="text-zinc-600 dark:text-zinc-400 mb-8">
+                  {locale === "zh" ? "选择一个文档查看" : "Select a document to view"}
+                </p>
+                <div className="flex flex-col gap-2 items-center">
+                  <Link
+                    href={`${docsPath}/overview`}
+                    className="text-blue-600 hover:underline dark:text-blue-400"
+                  >
+                    {locale === "zh" ? "概览" : "Overview"}
+                  </Link>
+                </div>
+              </div>
+            )}
+          </main>
+        </div>
+      </div>
     </div>
   );
 }

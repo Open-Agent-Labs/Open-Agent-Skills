@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Open Agent Skills",
-    "description": "一个现代化的 Next.js 应用，支持国际化和 MDX"
+    "description": "一个简单、开放的格式，为 AI Agent 提供新能力和专业知识"
   },
   "nav": {
     "home": "首页",
@@ -9,29 +9,43 @@
     "blog": "博客"
   },
   "home": {
-    "title": "欢迎来到 Open Agent Skills",
-    "subtitle": "一个现代化的 Next.js 应用，支持国际化和 MDX",
+    "title": "Open Agent Skills",
+    "subtitle": "一个简单、开放的格式，为 AI Agent 提供新能力和专业知识",
     "getStarted": "开始使用",
     "viewDocs": "查看文档",
     "features": {
-      "title": "特性",
-      "i18n": {
-        "title": "国际化",
-        "description": "使用 next-intl 内置多语言支持"
+      "title": "Open Agent Skills 能实现什么？",
+      "expertise": {
+        "title": "领域专业知识",
+        "description": "将专业知识打包成可重用的指令，从法律审查流程到数据分析管道。"
       },
-      "mdx": {
-        "title": "MDX 支持",
-        "description": "使用 MDX 编写丰富的交互式文档内容"
+      "capabilities": {
+        "title": "新能力",
+        "description": "为 Agent 提供新能力，如创建演示文稿、构建 MCP 服务器或分析数据集。"
       },
-      "deploy": {
-        "title": "边缘部署",
-        "description": "使用 OpenNext.js 部署到 Cloudflare Workers"
+      "workflows": {
+        "title": "可重复的工作流",
+        "description": "将多步骤任务转变为一致且可审计的工作流。"
+      },
+      "interoperability": {
+        "title": "互操作性",
+        "description": "在不同的 skills 兼容 Agent 产品中重用相同的 skill。"
       }
-    }
+    },
+    "whyTitle": "为什么需要 Open Agent Skills？",
+    "whyDescription": "Agent 的能力越来越强，但往往缺乏可靠完成实际工作所需的上下文。Skills 通过让 Agent 按需加载程序性知识来解决这个问题。"
   },
   "docs": {
     "title": "文档",
-    "backToHome": "返回首页"
+    "backToHome": "返回首页",
+    "sidebar": {
+      "overview": "概览",
+      "whatAreSkills": "什么是 skills？",
+      "specification": "规范",
+      "integrateSkills": "集成 skills"
+    },
+    "prev": "上一篇",
+    "next": "下一篇"
   },
   "common": {
     "language": "语言",

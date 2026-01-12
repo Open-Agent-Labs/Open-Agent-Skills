@@ -1,0 +1,100 @@
+---
+title: 集成 skills
+description: 如何为您的 Agent 或工具添加 Open Agent Skills 支持。
+order: 4
+---
+
+# 将 skills 集成到您的 Agent
+
+如何为您的 Agent 或工具添加 Open Agent Skills 支持。
+
+本指南解释如何为 AI Agent 或开发工具添加 skills 支持。
+
+## 集成方法
+
+集成 skills 的两种主要方法是：
+
+**基于文件系统的 Agent** 在计算机环境（bash/unix）中运行，代表最强大的选项。当模型发出类似 `cat /path/to/my-skill/SKILL.md` 的 shell 命令时，skills 被激活。捆绑的资源通过 shell 命令访问。
+
+**基于工具的 Agent** 没有专用的计算机环境。相反，它们实现允许模型触发 skills 并访问捆绑资产的工具。具体的工具实现由开发者决定。
+
+## 概述
+
+一个 skills 兼容的 Agent 需要：
+
+1. **发现**配置目录中的 skills
+2. **在启动时加载元数据**（名称和描述）
+3. **匹配**用户任务与相关 skills
+4. **通过加载完整指令激活** skills
+5. **根据需要执行**脚本和访问资源
+
+## Skill 发现
+
+Skills 是包含 `SKILL.md` 文件的文件夹。您的 Agent 应扫描配置的目录以查找有效的 skills。
+
+## 加载元数据
+
+在启动时，仅解析每个 `SKILL.md` 文件的 frontmatter。这可以保持较低的初始上下文使用。
+
+### 解析 frontmatter
+
+```javascript
+function parseMetadata(skillPath) {
+    content = readFile(skillPath + "/SKILL.md")
+    frontmatter = extractYAMLFrontmatter(content)
+
+    return {
+        name: frontmatter.name,
+        description: frontmatter.description,
+        path: skillPath
+    }
+}
+```
+
+### 注入上下文
+
+在系统提示中包含 skill 元数据，以便模型知道有哪些 skills 可用。遵循您平台的系统提示更新指南。例如，对于 Claude 模型，推荐的格式使用 XML：
+
+```xml
+<available_skills>
+  <skill>
+    <name>pdf-processing</name>
+    <description>从 PDF 文件中提取文本和表格，填写表单，合并文档。</description>
+    <location>/path/to/skills/pdf-processing/SKILL.md</location>
+  </skill>
+  <skill>
+    <name>data-analysis</name>
+    <description>分析数据集，生成图表，创建摘要报告。</description>
+    <location>/path/to/skills/data-analysis/SKILL.md</location>
+  </skill>
+</available_skills>
+```
+
+对于基于文件系统的 Agent，包含带有 SKILL.md 文件绝对路径的 `location` 字段。对于基于工具的 Agent，可以省略 location。保持元数据简洁。每个 skill 应该向上下文添加大约 50-100 个 token。
+
+## 安全考虑
+
+脚本执行会引入安全风险。请考虑：
+
+- **沙箱化**：在隔离环境中运行脚本
+- **白名单**：仅执行来自受信任 skills 的脚本
+- **确认**：在运行潜在危险操作之前询问用户
+- **日志记录**：记录所有脚本执行以供审计
+
+## 参考实现
+
+[skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) 库提供了用于处理 skills 的 Python 工具和 CLI。
+
+**验证 skill 目录：**
+
+```bash
+skills-ref validate <path>
+```
+
+**为 Agent 提示生成 `<available_skills>` XML：**
+
+```bash
+skills-ref to-prompt <path>...
+```
+
+使用库源代码作为参考实现。

@@ -1,37 +1,51 @@
 {
   "metadata": {
     "title": "Open Agent Skills",
-    "description": "A modern Next.js application with internationalization and MDX support"
+    "description": "A simple, open format for giving agents new capabilities and expertise"
   },
   "nav": {
     "home": "Home",
-    "docs": "Documentation",
+    "docs": "Docs",
     "blog": "Blog"
   },
   "home": {
-    "title": "Welcome to Open Agent Skills",
-    "subtitle": "A modern Next.js application with internationalization and MDX support",
+    "title": "Open Agent Skills",
+    "subtitle": "A simple, open format for giving agents new capabilities and expertise",
     "getStarted": "Get Started",
     "viewDocs": "View Documentation",
     "features": {
-      "title": "Features",
-      "i18n": {
-        "title": "Internationalization",
-        "description": "Built-in support for multiple languages with next-intl"
+      "title": "What can Open Agent Skills enable?",
+      "expertise": {
+        "title": "Domain Expertise",
+        "description": "Package specialized knowledge into reusable instructions, from legal review processes to data analysis pipelines."
       },
-      "mdx": {
-        "title": "MDX Support",
-        "description": "Write content with MDX for rich, interactive documentation"
+      "capabilities": {
+        "title": "New Capabilities",
+        "description": "Give agents new capabilities like creating presentations, building MCP servers, or analyzing datasets."
       },
-      "deploy": {
-        "title": "Edge Deployment",
-        "description": "Deploy to Cloudflare Workers with OpenNext.js"
+      "workflows": {
+        "title": "Repeatable Workflows",
+        "description": "Turn multi-step tasks into consistent and auditable workflows."
+      },
+      "interoperability": {
+        "title": "Interoperability",
+        "description": "Reuse the same skill across different skills-compatible agent products."
       }
-    }
+    },
+    "whyTitle": "Why Open Agent Skills?",
+    "whyDescription": "Agents are increasingly capable, but often don't have the context they need to do real work reliably. Skills solve this by giving agents access to procedural knowledge they can load on demand."
   },
   "docs": {
     "title": "Documentation",
-    "backToHome": "Back to Home"
+    "backToHome": "Back to Home",
+    "sidebar": {
+      "overview": "Overview",
+      "whatAreSkills": "What are skills?",
+      "specification": "Specification",
+      "integrateSkills": "Integrate skills"
+    },
+    "prev": "Previous",
+    "next": "Next"
   },
   "common": {
     "language": "Language",
