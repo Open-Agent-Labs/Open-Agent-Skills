@@ -1,0 +1,40 @@
+{
+  "metadata": {
+    "title": "Open Agent Skills",
+    "description": "A modern Next.js application with internationalization and MDX support"
+  },
+  "nav": {
+    "home": "Home",
+    "docs": "Documentation",
+    "blog": "Blog"
+  },
+  "home": {
+    "title": "Welcome to Open Agent Skills",
+    "subtitle": "A modern Next.js application with internationalization and MDX support",
+    "getStarted": "Get Started",
+    "viewDocs": "View Documentation",
+    "features": {
+      "title": "Features",
+      "i18n": {
+        "title": "Internationalization",
+        "description": "Built-in support for multiple languages with next-intl"
+      },
+      "mdx": {
+        "title": "MDX Support",
+        "description": "Write content with MDX for rich, interactive documentation"
+      },
+      "deploy": {
+        "title": "Edge Deployment",
+        "description": "Deploy to Cloudflare Workers with OpenNext.js"
+      }
+    }
+  },
+  "docs": {
+    "title": "Documentation",
+    "backToHome": "Back to Home"
+  },
+  "common": {
+    "language": "Language",
+    "switchLanguage": "Switch Language"
+  }
+}
