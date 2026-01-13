@@ -1,0 +1,524 @@
+---
+title: 集成 Skills
+description: 为你自己的 Agent 或工具添加 Agent Skills 支持
+order: 8
+group: integration
+---
+
+# 集成 Skills
+
+本指南说明如何为 AI Agent 或开发工具添加 skills 支持。
+
+## 概述
+
+一个兼容 skills 的 Agent 需要：
+
+1. **发现** 配置目录中的 skills
+2. **加载元数据**（name 和 description）在启动时
+3. **呈现** 可用 skills 给 Agent，通过工具描述
+4. **激活** 请求时加载完整说明
+5. **执行** 脚本并按需访问资源
+6. **执行** 基于配置的权限
+
+## 集成方式
+
+### 基于文件系统的 Agent
+
+在计算机环境（bash/unix）中运行的 Agent：
+
+- 当模型发出 `cat /path/to/skill/SKILL.md` 等 shell 命令时激活 Skills
+- 通过 shell 命令访问捆绑资源
+- 最灵活、功能最强的方式
+
+### 基于工具的 Agent
+
+没有专用计算机环境的 Agent：
+
+- 实现 `skill` 工具来加载 skills
+- 更可控但灵活性较低
+- 推荐用于大多数集成
+
+## 第一步：Skill 发现
+
+### 支持的路径
+
+扫描这些目录以查找有效的 skills：
+
+```javascript
+const SKILL_PATHS = {
+  project: [
+    '.opencode/skill',      // OpenCode 原生格式
+    '.claude/skills'        // Claude 兼容格式
+  ],
+  global: [
+    '~/.config/opencode/skill',  // OpenCode 原生格式
+    '~/.claude/skills'           // Claude 兼容格式
+  ]
+};
+```
+
+### 向上遍历发现
+
+对于项目本地路径，从当前工作目录向上遍历到 git 工作树根目录：
+
+```javascript
+function discoverProjectSkills(cwd) {
+  const skills = [];
+  let dir = cwd;
+  const gitRoot = findGitRoot(cwd);
+  
+  while (dir && dir.startsWith(gitRoot)) {
+    for (const skillPath of SKILL_PATHS.project) {
+      const fullPath = path.join(dir, skillPath);
+      if (fs.existsSync(fullPath)) {
+        skills.push(...scanSkillDirectory(fullPath));
+      }
+    }
+    dir = path.dirname(dir);
+    if (dir === path.dirname(dir)) break; // 到达根目录
+  }
+  
+  return skills;
+}
+
+function scanSkillDirectory(skillsDirectory) {
+  const skills = [];
+  
+  for (const entry of fs.readdirSync(skillsDirectory)) {
+    const skillPath = path.join(skillsDirectory, entry);
+    const skillMdPath = path.join(skillPath, "SKILL.md");
+    
+    if (fs.existsSync(skillMdPath)) {
+      skills.push({
+        name: entry,
+        path: skillPath,
+        skillMdPath: skillMdPath
+      });
+    }
+  }
+  
+  return skills;
+}
+```
+
+### 去重
+
+较近目录中同名的 skill 会覆盖父目录中的 skill：
+
+```javascript
+function deduplicateSkills(skills) {
+  const seen = new Map();
+  for (const skill of skills) {
+    if (!seen.has(skill.name)) {
+      seen.set(skill.name, skill);
+    }
+  }
+  return Array.from(seen.values());
+}
+```
+
+## 第二步：加载元数据
+
+启动时只解析 frontmatter 以最小化上下文使用：
+
+```javascript
+function parseMetadata(skillMdPath) {
+  const content = fs.readFileSync(skillMdPath, "utf8");
+  const frontmatter = extractYAMLFrontmatter(content);
+  
+  // 验证必需字段
+  if (!frontmatter.name || !frontmatter.description) {
+    throw new Error(`无效的 skill：缺少 name 或 description`);
+  }
+  
+  // 验证名称格式
+  if (!isValidSkillName(frontmatter.name)) {
+    throw new Error(`无效的 skill 名称：${frontmatter.name}`);
+  }
+  
+  return {
+    name: frontmatter.name,
+    description: frontmatter.description,
+    path: path.dirname(skillMdPath)
+  };
+}
+
+function isValidSkillName(name) {
+  // 1-64 字符，小写字母数字，单连字符分隔
+  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(name) && name.length <= 64;
+}
+
+function extractYAMLFrontmatter(content) {
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return {};
+  
+  const yaml = {};
+  match[1].split("\n").forEach(line => {
+    const [key, ...value] = line.split(":");
+    if (key && value.length) {
+      yaml[key.trim()] = value.join(":").trim();
+    }
+  });
+  return yaml;
+}
+```
+
+## 第三步：注入工具描述
+
+在 `skill` 工具的描述中包含 skill 元数据：
+
+### XML 格式（推荐）
+
+```xml
+<available_skills>
+  <skill>
+    <name>pdf-processing</name>
+    <description>从 PDF 文件中提取文本和表格，填写表单，合并文档。</description>
+  </skill>
+  <skill>
+    <name>data-analysis</name>
+    <description>分析数据集，生成图表，创建摘要报告。</description>
+  </skill>
+</available_skills>
+```
+
+### 生成代码
+
+```javascript
+function generateSkillsPrompt(skills) {
+  if (skills.length === 0) return '';
+  
+  let xml = "<available_skills>\n";
+  
+  for (const skill of skills) {
+    xml += "  <skill>\n";
+    xml += `    <name>${escapeXml(skill.name)}</name>\n`;
+    xml += `    <description>${escapeXml(skill.description)}</description>\n`;
+    xml += "  </skill>\n";
+  }
+  
+  xml += "</available_skills>";
+  return xml;
+}
+```
+
+### 上下文预算
+
+- 每个 skill 在工具描述中添加约 50-100 个 token
+- 保持元数据简洁
+- 如果上下文受限，考虑限制 skills 总数
+
+## 第四步：Skill 工具
+
+实现一个 Agent 可以调用来加载 skill 的工具：
+
+```javascript
+const skillTool = {
+  name: "skill",
+  description: `加载一个 skill 以获取特定任务的详细说明。
+
+${generateSkillsPrompt(availableSkills)}`,
+  
+  parameters: {
+    type: "object",
+    properties: {
+      name: {
+        type: "string",
+        description: "要加载的 skill 名称"
+      }
+    },
+    required: ["name"]
+  },
+  
+  execute: async ({ name }) => {
+    const skill = findSkillByName(name);
+    if (!skill) {
+      return { error: `Skill 未找到：${name}` };
+    }
+    
+    // 检查权限
+    const permission = getSkillPermission(name);
+    if (permission === 'deny') {
+      return { error: `访问被拒绝：${name}` };
+    }
+    if (permission === 'ask') {
+      const approved = await askUserApproval(name);
+      if (!approved) {
+        return { error: `用户拒绝访问 skill：${name}` };
+      }
+    }
+    
+    const content = fs.readFileSync(skill.skillMdPath, "utf8");
+    return { content };
+  }
+};
+```
+
+## 第五步：配置权限
+
+### 权限配置
+
+使用基于模式的权限控制 Agent 可以访问哪些 skills：
+
+```json
+{
+  "permission": {
+    "skill": {
+      "*": "allow",
+      "pr-review": "allow",
+      "internal-*": "deny",
+      "experimental-*": "ask"
+    }
+  }
+}
+```
+
+### 权限值
+
+| 权限 | 行为 |
+|------|------|
+| `allow` | Skill 立即加载 |
+| `deny` | Skill 对 Agent 隐藏，访问被拒绝 |
+| `ask` | 加载前提示用户批准 |
+
+### 模式匹配实现
+
+```javascript
+function getSkillPermission(skillName, config) {
+  const permissions = config.permission?.skill || {};
+  
+  // 首先检查精确匹配
+  if (permissions[skillName]) {
+    return permissions[skillName];
+  }
+  
+  // 检查模式（最具体的优先）
+  const patterns = Object.keys(permissions)
+    .filter(p => p.includes('*'))
+    .sort((a, b) => b.length - a.length);
+  
+  for (const pattern of patterns) {
+    const regex = new RegExp('^' + pattern.replace('*', '.*') + '$');
+    if (regex.test(skillName)) {
+      return permissions[pattern];
+    }
+  }
+  
+  // 默认允许
+  return 'allow';
+}
+```
+
+### 从列表中过滤被拒绝的 skills
+
+`deny` 权限的 skills 不应出现在可用 skills 列表中：
+
+```javascript
+function getVisibleSkills(skills, config) {
+  return skills.filter(skill => {
+    const permission = getSkillPermission(skill.name, config);
+    return permission !== 'deny';
+  });
+}
+```
+
+## 第六步：按 Agent 覆盖
+
+允许不同的 Agent 有不同的权限：
+
+### Agent 特定配置
+
+```json
+{
+  "agent": {
+    "plan": {
+      "permission": {
+        "skill": {
+          "internal-*": "allow"
+        }
+      }
+    },
+    "build": {
+      "permission": {
+        "skill": {
+          "*": "allow"
+        }
+      }
+    }
+  }
+}
+```
+
+### 解析顺序
+
+1. Agent 特定权限（如果定义）
+2. 全局权限（回退）
+3. 默认允许（如果没有定义）
+
+```javascript
+function getEffectivePermission(skillName, agentName, config) {
+  // 首先检查 Agent 特定权限
+  const agentConfig = config.agent?.[agentName];
+  if (agentConfig?.permission?.skill) {
+    const perm = matchPermission(skillName, agentConfig.permission.skill);
+    if (perm) return perm;
+  }
+  
+  // 回退到全局
+  return getSkillPermission(skillName, config);
+}
+```
+
+## 第七步：完全禁用 Skills
+
+允许将 Agent 配置为不支持 skills：
+
+### 配置
+
+```json
+{
+  "agent": {
+    "plan": {
+      "tools": {
+        "skill": false
+      }
+    }
+  }
+}
+```
+
+### 实现
+
+```javascript
+function getAgentTools(agentName, config, allTools) {
+  const agentConfig = config.agent?.[agentName] || {};
+  const toolConfig = agentConfig.tools || {};
+  
+  return allTools.filter(tool => {
+    // 检查工具是否被明确禁用
+    if (toolConfig[tool.name] === false) {
+      return false;
+    }
+    return true;
+  });
+}
+```
+
+当 skill 工具被禁用时，完全省略 `<available_skills>` 部分。
+
+## 第八步：资源访问
+
+### 脚本
+
+允许 Agent 执行 skill 脚本：
+
+```javascript
+function executeSkillScript(skillName, scriptPath, args) {
+  const skill = findSkillByName(skillName);
+  const fullPath = path.join(skill.path, "scripts", scriptPath);
+  
+  // 验证路径在 skill 目录内
+  if (!fullPath.startsWith(skill.path)) {
+    throw new Error("无效的脚本路径");
+  }
+  
+  return spawnSync(fullPath, args);
+}
+```
+
+### 参考文件
+
+按需加载参考文件：
+
+```javascript
+function loadReference(skillName, refPath) {
+  const skill = findSkillByName(skillName);
+  const fullPath = path.join(skill.path, "references", refPath);
+  
+  return fs.readFileSync(fullPath, "utf8");
+}
+```
+
+## 安全考虑
+
+### 脚本执行
+
+| 风险 | 缓解措施 |
+|------|----------|
+| 恶意代码 | 只执行来自可信 skills 的脚本 |
+| 系统访问 | 在沙箱环境中运行 |
+| 数据泄露 | 监控网络访问 |
+
+### 建议
+
+1. **沙箱化**：在隔离环境中运行脚本
+2. **白名单**：只执行来自可信 skills 的脚本
+3. **确认**：在危险操作前询问用户
+4. **日志**：记录所有脚本执行以供审计
+
+```javascript
+async function executeWithConfirmation(command, skill) {
+  const confirmed = await askUser(
+    `Skill "${skill.name}" 想要运行：${command}\n允许吗？`
+  );
+  
+  if (confirmed) {
+    logExecution(skill, command);
+    return execute(command);
+  }
+  
+  return { cancelled: true };
+}
+```
+
+## 参考实现
+
+使用 [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) 库：
+
+### 验证 skills
+
+```bash
+skills-ref validate /path/to/skill
+```
+
+### 生成提示词 XML
+
+```bash
+skills-ref to-prompt /path/to/skills/*
+```
+
+### Python 库
+
+```python
+from skills_ref import Skill, validate_skill
+
+# 加载并验证
+skill = Skill.from_path("/path/to/skill")
+errors = validate_skill(skill)
+
+# 生成提示词
+prompt = skill.to_prompt_xml()
+```
+
+## 测试你的集成
+
+### 检查清单
+
+- [ ] 从所有支持的路径发现 Skills
+- [ ] 向上遍历发现能找到父目录中的 skills
+- [ ] Skill 元数据解析无错误
+- [ ] Skills 出现在工具描述中
+- [ ] Agent 可以调用 skill 工具来加载 skills
+- [ ] 权限正确执行
+- [ ] 被拒绝的 skills 从列表中隐藏
+- [ ] `ask` 权限提示用户
+- [ ] 按 Agent 覆盖正常工作
+- [ ] Skills 可以按 Agent 禁用
+- [ ] 脚本正确执行（如果支持）
+- [ ] 参考文件按需加载
+- [ ] 安全措施到位
+
+## 下一步
+
+- **[规范](/zh/docs/specification)** - 完整格式参考
+- **[示例](/zh/docs/examples)** - 浏览示例实现

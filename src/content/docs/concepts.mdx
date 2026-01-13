@@ -1,0 +1,135 @@
+---
+title: Core Concepts
+description: Understand how Agent Skills work under the hood
+order: 3
+group: getting-started
+---
+
+# Core Concepts
+
+Understanding these concepts will help you create more effective skills.
+
+## Progressive Disclosure
+
+Skills are designed for **efficient context management**. Agents don't load everything at once - they progressively load what they need:
+
+```
+┌─────────────────────────────────────────────────────┐
+│  Stage 1: Discovery (~100 tokens per skill)         │
+│  Agent loads only name + description of all skills  │
+└─────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────┐
+│  Stage 2: Activation (< 5000 tokens recommended)    │
+│  When task matches, agent loads full SKILL.md       │
+└─────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────┐
+│  Stage 3: Resources (as needed)                     │
+│  Agent loads scripts, references only when required │
+└─────────────────────────────────────────────────────┘
+```
+
+**Why this matters:** Keep your SKILL.md focused. Move detailed reference material to separate files.
+
+## Skill Structure
+
+A complete skill can include multiple components:
+
+```
+my-skill/
+├── SKILL.md          # Required: main instructions
+├── scripts/          # Optional: executable code
+│   ├── process.py
+│   └── validate.sh
+├── references/       # Optional: detailed documentation
+│   ├── API.md
+│   └── examples.md
+└── assets/           # Optional: static resources
+    ├── template.json
+    └── schema.yaml
+```
+
+### SKILL.md (Required)
+
+The only required file. Contains:
+- **Frontmatter**: Metadata (name, description)
+- **Body**: Instructions in Markdown
+
+### scripts/ (Optional)
+
+Executable code the agent can run:
+- Python, Bash, JavaScript, etc.
+- Should be self-contained
+- Include helpful error messages
+
+### references/ (Optional)
+
+Additional documentation loaded on demand:
+- Detailed API references
+- Complex examples
+- Domain-specific knowledge
+
+### assets/ (Optional)
+
+Static resources:
+- Templates
+- Configuration files
+- Schemas
+
+## The SKILL.md File
+
+Every SKILL.md follows this structure:
+
+```markdown
+---
+name: skill-name
+description: When and how to use this skill
+---
+
+# Skill Title
+
+## When to use this skill
+Clear criteria for activation...
+
+## Instructions
+Step-by-step guide...
+
+## Examples
+Input/output examples...
+```
+
+### Required Frontmatter
+
+| Field | Description |
+|-------|-------------|
+| `name` | Unique identifier (lowercase, hyphens allowed) |
+| `description` | What the skill does and when to use it |
+
+### Optional Frontmatter
+
+| Field | Description |
+|-------|-------------|
+| `license` | License information |
+| `compatibility` | Environment requirements |
+| `metadata` | Custom key-value pairs |
+
+## How Agents Use Skills
+
+1. **At startup**: Agent scans skill directories, loads only metadata
+2. **On user request**: Agent matches task to skill descriptions
+3. **When matched**: Agent reads full SKILL.md into context
+4. **During execution**: Agent loads scripts/references as needed
+
+## Key Takeaways
+
+1. **Keep SKILL.md under 500 lines** - Split detailed content into references
+2. **Write clear descriptions** - This is how agents find your skill
+3. **Use progressive disclosure** - Don't load everything upfront
+4. **Include examples** - They help agents understand expected behavior
+
+## Next steps
+
+- **[Writing SKILL.md](/docs/writing-skill-md)** - Complete guide to the skill format
+- **[Scripts and Resources](/docs/scripts-and-resources)** - Adding code and files
+- **[Best Practices](/docs/best-practices)** - Tips for effective skills

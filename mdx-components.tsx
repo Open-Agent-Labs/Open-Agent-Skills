@@ -52,16 +52,7 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </strong>
     ),
-    code: ({ children }) => (
-      <code className="bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-sm font-mono text-zinc-800 dark:text-zinc-200">
-        {children}
-      </code>
-    ),
-    pre: ({ children }) => (
-      <pre className="bg-zinc-900 dark:bg-zinc-950 p-4 rounded-lg overflow-x-auto mb-6 text-sm border border-zinc-800">
-        {children}
-      </pre>
-    ),
+    // code 和 pre 组件由 rehype-pretty-code 处理，不再手动覆盖
     blockquote: ({ children }) => (
       <blockquote className="border-l-4 border-blue-500 pl-4 italic text-zinc-600 dark:text-zinc-400 my-6 bg-blue-50 dark:bg-blue-900/20 py-3 pr-4 rounded-r-lg">
         {children}

@@ -1,23 +1,41 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
-import { getContentBySlug, getAllDocsMetadata } from "@/lib/mdx";
+import { getContentBySlug, getDocsGrouped, getAllDocsMetadata } from "@/lib/mdx";
 import { routing, type Locale } from "@/i18n/routing";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { DocsSidebar, MobileDocsSidebar } from "@/components/DocsSidebar";
 import { DocsNavigation } from "@/components/DocsNavigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { useMDXComponents } from "../../../../../mdx-components";
+import rehypePrettyCode from "rehype-pretty-code";
+import type { Options as PrettyCodeOptions } from "rehype-pretty-code";
+
+// rehype-pretty-code 配置
+const prettyCodeOptions: PrettyCodeOptions = {
+  theme: "github-dark",
+  keepBackground: true,
+};
 
 export function generateStaticParams() {
   const paths: { locale: string; slug: string[] }[] = [];
+  const slugs = [
+    "introduction",
+    "quickstart",
+    "concepts",
+    "writing-skill-md",
+    "scripts-and-resources",
+    "best-practices",
+    "using-skills",
+    "integrating",
+    "specification",
+    "examples",
+  ];
 
   for (const locale of routing.locales) {
-    const defaultSlug = "overview";
-    paths.push({ locale, slug: [defaultSlug] });
-    paths.push({ locale, slug: ["what-are-skills"] });
-    paths.push({ locale, slug: ["specification"] });
-    paths.push({ locale, slug: ["integrate-skills"] });
+    for (const slug of slugs) {
+      paths.push({ locale, slug: [slug] });
+    }
     paths.push({ locale, slug: [] });
   }
 
@@ -32,8 +50,9 @@ export default async function DocsPage({
   const { locale, slug } = await params;
   setRequestLocale(locale);
 
-  const slugPath = slug?.join("/") || "overview";
+  const slugPath = slug?.join("/") || "introduction";
   const content = await getContentBySlug(locale as Locale, "docs", slugPath);
+  const groups = await getDocsGrouped(locale as Locale);
   const allDocs = await getAllDocsMetadata(locale as Locale);
 
   if (!content && slug && slug.length > 0) {
@@ -70,7 +89,7 @@ export default async function DocsPage({
                 {navLabels.home}
               </Link>
               <Link
-                href={`${docsPath}/overview`}
+                href={`${docsPath}/introduction`}
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
                 {navLabels.docs}
@@ -92,14 +111,14 @@ export default async function DocsPage({
       <div className="pt-24 pb-20 max-w-7xl mx-auto px-6">
         <div className="flex gap-12">
           <DocsSidebar
-            docs={allDocs}
+            groups={groups}
             locale={locale}
             currentSlug={slugPath}
           />
 
           <main className="flex-1 min-w-0">
             <MobileDocsSidebar
-              docs={allDocs}
+              groups={groups}
               locale={locale}
               currentSlug={slugPath}
             />
@@ -116,7 +135,15 @@ export default async function DocsPage({
             {content ? (
               <>
                 <article className="prose prose-zinc dark:prose-invert max-w-none prose-headings:scroll-mt-24 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-code:before:content-none prose-code:after:content-none">
-                  <MDXRemote source={content.content} components={components} />
+                  <MDXRemote
+                    source={content.content}
+                    components={components}
+                    options={{
+                      mdxOptions: {
+                        rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
+                      },
+                    }}
+                  />
                 </article>
                 <DocsNavigation
                   docs={allDocs}
@@ -134,10 +161,10 @@ export default async function DocsPage({
                 </p>
                 <div className="flex flex-col gap-2 items-center">
                   <Link
-                    href={`${docsPath}/overview`}
+                    href={`${docsPath}/introduction`}
                     className="text-blue-600 hover:underline dark:text-blue-400"
                   >
-                    {locale === "zh" ? "概览" : "Overview"}
+                    {locale === "zh" ? "简介" : "Introduction"}
                   </Link>
                 </div>
               </div>

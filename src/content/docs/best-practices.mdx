@@ -1,0 +1,279 @@
+---
+title: Best Practices
+description: Tips and patterns for creating effective Agent Skills
+order: 6
+group: creating-skills
+---
+
+# Best Practices
+
+Follow these guidelines to create skills that agents can use effectively.
+
+## Writing Clear Descriptions
+
+The description is how agents find your skill. Make it count.
+
+### Be specific
+
+```yaml
+# Bad - too vague
+description: Helps with documents
+
+# Good - specific and actionable
+description: Converts Word documents (.docx) to PDF format, preserving formatting and embedded images. Use when user needs to export or share documents as PDF.
+```
+
+### Include trigger keywords
+
+Think about what users might say:
+
+```yaml
+description: Analyzes CSV data files to generate summary statistics, charts, and insights. Use when user mentions data analysis, CSV files, statistics, or wants to visualize data.
+```
+
+### Describe both what and when
+
+```yaml
+description: |
+  What: Validates JSON files against JSON Schema definitions.
+  When: Use when user wants to validate JSON, check schema compliance, or debug malformed JSON.
+```
+
+## Structuring Instructions
+
+### Use clear headings
+
+```markdown
+## When to use this skill
+## Prerequisites  
+## Step-by-step instructions
+## Examples
+## Common issues
+```
+
+### Be explicit about steps
+
+```markdown
+## Instructions
+
+1. First, check if the input file exists
+2. Read the file contents using: `cat {filename}`
+3. Process the content by running: `python scripts/process.py {filename}`
+4. Return the output to the user
+```
+
+### Include exact commands
+
+```markdown
+# Bad
+Run the processing script on the file.
+
+# Good  
+Run: `python scripts/process.py --input data.csv --output results.json`
+```
+
+## Managing Context Size
+
+### Keep SKILL.md focused
+
+| Guideline | Recommendation |
+|-----------|----------------|
+| Main SKILL.md | Under 500 lines |
+| Total token count | Under 5000 tokens |
+| Reference files | Load on demand |
+
+### Split large skills
+
+If your skill is getting too long:
+
+```
+# Instead of one large skill:
+mega-processor/
+└── SKILL.md (1000+ lines)
+
+# Create focused skills:
+text-processor/
+└── SKILL.md (200 lines)
+
+image-processor/
+└── SKILL.md (200 lines)
+
+data-processor/
+└── SKILL.md (200 lines)
+```
+
+### Use references for details
+
+```markdown
+## Quick Start
+
+[Basic instructions here - ~100 lines]
+
+## Advanced Usage
+
+For advanced features, see [references/ADVANCED.md](references/ADVANCED.md).
+
+## API Reference
+
+Full API documentation: [references/API.md](references/API.md).
+```
+
+## Error Handling
+
+### Anticipate failures
+
+```markdown
+## Error Handling
+
+### File not found
+If the input file doesn't exist, inform the user and ask for the correct path.
+
+### Invalid format
+If the file format is not supported, list supported formats and ask user to convert.
+
+### Permission denied
+If access is denied, suggest checking file permissions or running with appropriate access.
+```
+
+### Provide recovery steps
+
+```markdown
+## Troubleshooting
+
+### "Module not found" error
+Install required dependencies:
+\`\`\`bash
+pip install -r requirements.txt
+\`\`\`
+
+### "Connection refused" error
+Ensure the service is running:
+\`\`\`bash
+./scripts/start-service.sh
+\`\`\`
+```
+
+## Examples and Edge Cases
+
+### Show input/output pairs
+
+```markdown
+## Examples
+
+### Basic usage
+
+**Input:** "Convert report.docx to PDF"
+
+**Action:**
+\`\`\`bash
+python scripts/convert.py report.docx --output report.pdf
+\`\`\`
+
+**Output:** "Created report.pdf successfully"
+```
+
+### Cover edge cases
+
+```markdown
+## Edge Cases
+
+### Empty input
+If the user provides an empty file, return a warning instead of processing.
+
+### Very large files
+For files over 100MB, process in chunks to avoid memory issues:
+\`\`\`bash
+python scripts/convert.py large-file.docx --chunked
+\`\`\`
+
+### Special characters in filenames
+Always quote filenames to handle spaces and special characters:
+\`\`\`bash
+python scripts/convert.py "my file (copy).docx"
+\`\`\`
+```
+
+## Script Best Practices
+
+### Self-documenting scripts
+
+```python
+#!/usr/bin/env python3
+"""
+process_data.py - Process and transform data files
+
+Usage:
+    python process_data.py <input_file> [--format json|csv]
+
+Arguments:
+    input_file    Path to the input data file
+    --format      Output format (default: json)
+
+Requirements:
+    pip install pandas
+
+Example:
+    python process_data.py data.csv --format json
+"""
+```
+
+### Helpful error messages
+
+```python
+# Bad
+raise Exception("Error")
+
+# Good
+if not os.path.exists(input_path):
+    print(f"Error: Cannot find file '{input_path}'")
+    print(f"Please check the path and try again.")
+    print(f"Current directory: {os.getcwd()}")
+    sys.exit(1)
+```
+
+### Exit codes
+
+```python
+# Success
+sys.exit(0)
+
+# User error (bad input)
+sys.exit(1)
+
+# System error
+sys.exit(2)
+```
+
+## Testing Your Skill
+
+### Manual testing checklist
+
+- [ ] Does the description accurately reflect what the skill does?
+- [ ] Are all commands correct and working?
+- [ ] Do scripts have proper error handling?
+- [ ] Are examples accurate?
+- [ ] Does it work with edge cases?
+
+### Validation
+
+Use the skills-ref tool:
+
+```bash
+skills-ref validate ./my-skill
+```
+
+## Summary
+
+| Do | Don't |
+|----|-------|
+| Write specific descriptions | Use vague terms |
+| Include exact commands | Assume agent knows context |
+| Handle errors gracefully | Ignore edge cases |
+| Keep SKILL.md focused | Cram everything in one file |
+| Provide examples | Skip documentation |
+| Test before publishing | Ship untested skills |
+
+## Next steps
+
+- **[Using Skills](/docs/using-skills)** - Learn how to use existing skills
+- **[Examples](/docs/examples)** - Browse real-world skills

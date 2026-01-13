@@ -1,0 +1,281 @@
+---
+title: Scripts and Resources
+description: Adding executable code and reference materials to your skills
+order: 5
+group: creating-skills
+---
+
+# Scripts and Resources
+
+Skills can include more than just instructions. Learn how to add executable code and reference materials.
+
+## Directory Structure
+
+```
+my-skill/
+├── SKILL.md          # Required
+├── scripts/          # Executable code
+│   ├── main.py
+│   ├── helper.sh
+│   └── utils.js
+├── references/       # Documentation
+│   ├── API.md
+│   └── EXAMPLES.md
+└── assets/           # Static files
+    ├── template.json
+    └── config.yaml
+```
+
+## scripts/
+
+Contains executable code that agents can run.
+
+### Guidelines
+
+**Be self-contained:**
+```python
+# Good - includes all dependencies info
+#!/usr/bin/env python3
+"""
+Requirements: requests, pandas
+Install: pip install requests pandas
+"""
+import requests
+import pandas as pd
+```
+
+**Include helpful error messages:**
+```python
+def process_file(path):
+    if not os.path.exists(path):
+        print(f"Error: File not found: {path}")
+        print("Please provide a valid file path.")
+        sys.exit(1)
+```
+
+**Handle edge cases:**
+```python
+def extract_data(content):
+    if not content:
+        return {"error": "Empty content provided"}
+    
+    try:
+        return parse(content)
+    except ParseError as e:
+        return {"error": f"Failed to parse: {e}"}
+```
+
+### Supported Languages
+
+Common options (depends on agent):
+- **Python** - Most versatile
+- **Bash** - System operations
+- **JavaScript/Node** - Web-related tasks
+- **Any CLI tool** - If available on the system
+
+### Example Script
+
+```python
+#!/usr/bin/env python3
+"""
+extract_text.py - Extract text from PDF files
+
+Usage: python extract_text.py <pdf_file>
+
+Requirements: pdfplumber
+Install: pip install pdfplumber
+"""
+
+import sys
+import pdfplumber
+
+def extract_text(pdf_path):
+    """Extract all text from a PDF file."""
+    text_content = []
+    
+    try:
+        with pdfplumber.open(pdf_path) as pdf:
+            for page in pdf.pages:
+                text = page.extract_text()
+                if text:
+                    text_content.append(text)
+    except Exception as e:
+        print(f"Error processing PDF: {e}", file=sys.stderr)
+        sys.exit(1)
+    
+    return "\n\n".join(text_content)
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: python extract_text.py <pdf_file>")
+        sys.exit(1)
+    
+    result = extract_text(sys.argv[1])
+    print(result)
+```
+
+## references/
+
+Additional documentation loaded on demand.
+
+### When to use references
+
+- Detailed API documentation
+- Extended examples
+- Domain-specific knowledge
+- Information that's not always needed
+
+### Keep files focused
+
+Each reference file should cover one topic:
+
+```
+references/
+├── API.md           # API documentation
+├── EXAMPLES.md      # Extended examples
+├── TROUBLESHOOT.md  # Common issues
+└── GLOSSARY.md      # Domain terms
+```
+
+### Referencing from SKILL.md
+
+```markdown
+## Basic Usage
+
+[See instructions above]
+
+## Advanced Usage
+
+For advanced features, see [references/ADVANCED.md](references/ADVANCED.md).
+
+## Troubleshooting
+
+Having issues? Check [references/TROUBLESHOOT.md](references/TROUBLESHOOT.md).
+```
+
+### Example Reference File
+
+```markdown
+# API Reference
+
+## Endpoints
+
+### POST /extract
+
+Extract text from a document.
+
+**Request:**
+\`\`\`json
+{
+  "file_path": "/path/to/document.pdf",
+  "options": {
+    "pages": "all",
+    "format": "text"
+  }
+}
+\`\`\`
+
+**Response:**
+\`\`\`json
+{
+  "success": true,
+  "text": "Extracted content...",
+  "pages": 5
+}
+\`\`\`
+
+### Error Codes
+
+| Code | Meaning |
+|------|---------|
+| 400 | Invalid request |
+| 404 | File not found |
+| 500 | Processing error |
+```
+
+## assets/
+
+Static resources like templates and configuration files.
+
+### Common uses
+
+- **Templates**: Document templates, config templates
+- **Schemas**: JSON Schema, YAML definitions
+- **Data files**: Lookup tables, mappings
+
+### Example: Template file
+
+`assets/report-template.md`:
+```markdown
+# {{title}}
+
+**Date:** {{date}}
+**Author:** {{author}}
+
+## Summary
+
+{{summary}}
+
+## Details
+
+{{details}}
+
+## Conclusion
+
+{{conclusion}}
+```
+
+### Example: Schema file
+
+`assets/config-schema.json`:
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["name", "version"],
+  "properties": {
+    "name": {
+      "type": "string",
+      "minLength": 1
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    }
+  }
+}
+```
+
+## File References in SKILL.md
+
+Keep references one level deep:
+
+```markdown
+# Good - direct reference
+See [references/API.md](references/API.md)
+Run: scripts/process.py
+
+# Avoid - nested references
+See [references/advanced/deep/file.md]
+```
+
+## Complete Example
+
+```
+pdf-processor/
+├── SKILL.md
+├── scripts/
+│   ├── extract_text.py
+│   ├── extract_tables.py
+│   └── merge_pdfs.py
+├── references/
+│   ├── SUPPORTED_FORMATS.md
+│   └── TROUBLESHOOTING.md
+└── assets/
+    └── output-template.md
+```
+
+## Next steps
+
+- **[Best Practices](/docs/best-practices)** - Tips for effective skills
+- **[Examples](/docs/examples)** - Browse real skill examples

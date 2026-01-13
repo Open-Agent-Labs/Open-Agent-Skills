@@ -1,0 +1,321 @@
+---
+title: Examples
+description: Browse example Agent Skills and implementations
+order: 10
+group: reference
+---
+
+# Examples
+
+Browse real-world Agent Skills examples to learn from.
+
+## Official Example Skills
+
+The official skills repository contains reference implementations:
+
+### [anthropics/skills](https://github.com/anthropics/skills)
+
+Example skills maintained by Anthropic, including:
+
+- Document processing skills
+- Code analysis skills
+- Data manipulation skills
+
+## Example: PDF Processor
+
+A complete skill for processing PDF files:
+
+```
+pdf-processor/
+├── SKILL.md
+├── scripts/
+│   ├── extract_text.py
+│   ├── extract_tables.py
+│   └── merge_pdfs.py
+└── references/
+    └── FORMATS.md
+```
+
+### SKILL.md
+
+```markdown
+---
+name: pdf-processor
+description: Extract text and tables from PDF files, merge multiple PDFs. Use when working with PDF documents.
+metadata:
+  author: example
+  version: "1.0"
+---
+
+# PDF Processor
+
+## When to use this skill
+
+Use this skill when the user:
+- Needs to extract text from PDF files
+- Wants to extract tables from PDFs
+- Needs to merge multiple PDFs into one
+
+## Text Extraction
+
+To extract text from a PDF:
+
+\`\`\`bash
+python scripts/extract_text.py <input.pdf>
+\`\`\`
+
+## Table Extraction
+
+To extract tables as CSV:
+
+\`\`\`bash
+python scripts/extract_tables.py <input.pdf> --output tables/
+\`\`\`
+
+## Merging PDFs
+
+To merge multiple PDFs:
+
+\`\`\`bash
+python scripts/merge_pdfs.py file1.pdf file2.pdf -o merged.pdf
+\`\`\`
+
+## Supported Formats
+
+See [references/FORMATS.md](references/FORMATS.md) for supported PDF versions.
+```
+
+## Example: Git Commit Helper
+
+A simple skill without scripts:
+
+```
+git-commit-helper/
+└── SKILL.md
+```
+
+### SKILL.md
+
+```markdown
+---
+name: git-commit-helper
+description: Helps write better git commit messages following conventional commits format.
+---
+
+# Git Commit Helper
+
+## When to use this skill
+
+Use when the user asks for help with commit messages or mentions "conventional commits".
+
+## Commit Format
+
+\`\`\`
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+\`\`\`
+
+## Types
+
+| Type | Use for |
+|------|---------|
+| feat | New features |
+| fix | Bug fixes |
+| docs | Documentation |
+| style | Formatting |
+| refactor | Code restructuring |
+| test | Adding tests |
+| chore | Maintenance |
+
+## Examples
+
+### Feature
+\`\`\`
+feat(auth): add password reset functionality
+
+Users can now reset their password via email.
+Closes #123
+\`\`\`
+
+### Bug fix
+\`\`\`
+fix(api): handle null response from server
+
+Added null check to prevent crash when server
+returns empty response.
+\`\`\`
+
+### Breaking change
+\`\`\`
+feat(api)!: change response format
+
+BREAKING CHANGE: API now returns JSON:API format.
+See migration guide for details.
+\`\`\`
+```
+
+## Example: Code Reviewer
+
+A skill with references:
+
+```
+code-reviewer/
+├── SKILL.md
+└── references/
+    ├── PATTERNS.md
+    └── SECURITY.md
+```
+
+### SKILL.md
+
+```markdown
+---
+name: code-reviewer
+description: Reviews code for bugs, security issues, and best practices.
+compatibility: Works best with Python and JavaScript code.
+---
+
+# Code Reviewer
+
+## When to use this skill
+
+Use when reviewing code for:
+- Bugs and logic errors
+- Security vulnerabilities
+- Performance issues
+- Code style and best practices
+
+## Review Process
+
+1. Read the code carefully
+2. Check for common issues (see below)
+3. Provide specific, actionable feedback
+4. Suggest improvements with examples
+
+## Common Issues to Check
+
+### Logic errors
+- Off-by-one errors
+- Null/undefined handling
+- Edge cases
+
+### Security (see [references/SECURITY.md](references/SECURITY.md))
+- Input validation
+- SQL injection
+- XSS vulnerabilities
+
+### Performance
+- N+1 queries
+- Unnecessary loops
+- Memory leaks
+
+### Code patterns (see [references/PATTERNS.md](references/PATTERNS.md))
+- DRY violations
+- Large functions
+- Poor naming
+
+## Output Format
+
+\`\`\`markdown
+## Code Review: [filename]
+
+### Critical Issues
+- [Issue description and location]
+- [Suggested fix]
+
+### Improvements
+- [Suggestion and reasoning]
+
+### Positive Notes
+- [What was done well]
+\`\`\`
+```
+
+## Example: Data Analyzer
+
+A skill with scripts and assets:
+
+```
+data-analyzer/
+├── SKILL.md
+├── scripts/
+│   ├── analyze.py
+│   └── visualize.py
+└── assets/
+    └── report-template.md
+```
+
+### SKILL.md
+
+```markdown
+---
+name: data-analyzer
+description: Analyzes CSV data files to generate statistics, insights, and visualizations.
+metadata:
+  requires: pandas, matplotlib
+---
+
+# Data Analyzer
+
+## When to use this skill
+
+Use when the user wants to:
+- Analyze CSV or data files
+- Generate statistics
+- Create visualizations
+- Get insights from data
+
+## Quick Analysis
+
+\`\`\`bash
+python scripts/analyze.py data.csv
+\`\`\`
+
+Outputs:
+- Row/column counts
+- Data types
+- Basic statistics
+- Missing values
+
+## Visualization
+
+\`\`\`bash
+python scripts/visualize.py data.csv --chart bar --column sales
+\`\`\`
+
+Chart types: bar, line, scatter, histogram, pie
+
+## Report Generation
+
+Generate a full report using the template:
+
+\`\`\`bash
+python scripts/analyze.py data.csv --report --template assets/report-template.md
+\`\`\`
+```
+
+## Creating Your Own
+
+Use these examples as starting points:
+
+1. **Copy a similar skill** as a template
+2. **Modify the SKILL.md** for your use case
+3. **Add scripts** if needed
+4. **Test thoroughly** before publishing
+
+## Contributing Examples
+
+Want to share your skill?
+
+1. Ensure it follows the [specification](/docs/specification)
+2. Test with the skills-ref validator
+3. Submit to community repositories (coming soon)
+
+## Resources
+
+- [GitHub: anthropics/skills](https://github.com/anthropics/skills) - Official examples
+- [GitHub: agentskills/agentskills](https://github.com/agentskills/agentskills) - Reference library
+- [Specification](/docs/specification) - Complete format reference

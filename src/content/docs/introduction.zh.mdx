@@ -1,0 +1,52 @@
+---
+title: 简介
+description: 1 分钟了解 Agent Skills 是什么
+order: 1
+group: getting-started
+---
+
+# 简介
+
+**Agent Skills** 是一种简单、开放的格式，用于为 AI Agent 提供新能力和专业知识。
+
+## 什么是 Skill？
+
+Skill 就是一个包含 `SKILL.md` 文件的文件夹，其中包含告诉 Agent 如何执行特定任务的指令。
+
+```
+my-skill/
+├── SKILL.md          # Agent 的指令
+├── scripts/          # 可选：Agent 可运行的代码
+└── references/       # 可选：附加文档
+```
+
+可以把 skills 理解为 **"AI Agent 的操作指南"** - 它们提供 Agent 可靠完成实际工作所需的程序性知识。
+
+## 为什么 Agent 需要 Skills？
+
+AI Agent 的能力越来越强，但它们往往缺乏专业任务所需的特定上下文：
+
+| 没有 Skills | 有 Skills |
+|-------------|-----------|
+| 通用回答 | 领域专业知识 |
+| 不一致的工作流 | 可重复、可审计的流程 |
+| 局限于训练数据 | 可访问自定义程序 |
+| 一刀切 | 团队和项目定制 |
+
+## 这是为谁准备的？
+
+| 角色 | Skills 如何帮助 |
+|------|-----------------|
+| **Skill 作者** | 一次构建能力，部署到多个 Agent 产品 |
+| **Agent 开发者** | 添加 skills 支持，让用户扩展你的 Agent |
+| **团队和企业** | 将组织知识封装在版本控制的包中 |
+
+## 下一步
+
+准备好开始了吗？这是你的学习路径：
+
+1. **[快速开始](/zh/docs/quickstart)** - 5 分钟创建你的第一个 skill
+2. **[核心概念](/zh/docs/concepts)** - 了解 skills 如何工作
+3. **[编写 SKILL.md](/zh/docs/writing-skill-md)** - 掌握 skill 格式
+
+或者如果你更喜欢完整参考，可以直接跳到[规范](/zh/docs/specification)。

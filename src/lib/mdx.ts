@@ -10,25 +10,23 @@ export interface ContentMeta {
   description?: string;
   date?: string;
   order?: number;
+  group?: string;
 }
 
 export interface ContentItem extends ContentMeta {
   content: string;
 }
 
-/**
- * Get content directory path
- * New structure: src/content/docs/ (with .zh.mdx for Chinese)
- */
+export interface DocsGroup {
+  id: string;
+  label: string;
+  docs: ContentMeta[];
+}
+
 export function getContentDirectory(type: "docs" | "blog") {
   return path.join(contentDirectory, type);
 }
 
-/**
- * Get all content slugs for a given type and locale
- * - English: file.mdx
- * - Chinese: file.zh.mdx
- */
 export function getContentSlugs(locale: Locale, type: "docs" | "blog") {
   const dir = getContentDirectory(type);
 
@@ -39,21 +37,16 @@ export function getContentSlugs(locale: Locale, type: "docs" | "blog") {
   const files = fs.readdirSync(dir);
   
   if (locale === "zh") {
-    // For Chinese, look for .zh.mdx files
     return files
       .filter((file) => /\.zh\.mdx?$/.test(file))
       .map((file) => file.replace(/\.zh\.mdx?$/, ""));
   } else {
-    // For English, look for files without .zh suffix
     return files
       .filter((file) => /\.mdx?$/.test(file) && !/\.zh\.mdx?$/.test(file))
       .map((file) => file.replace(/\.mdx?$/, ""));
   }
 }
 
-/**
- * Get all content paths for static generation
- */
 export function getAllContentPaths(type: "docs" | "blog") {
   const locales: Locale[] = ["en", "zh"];
   const paths: { locale: Locale; slug: string }[] = [];
@@ -68,11 +61,6 @@ export function getAllContentPaths(type: "docs" | "blog") {
   return paths;
 }
 
-/**
- * Get content by slug and locale
- * - English: looks for {slug}.mdx or {slug}.md
- * - Chinese: looks for {slug}.zh.mdx or {slug}.zh.md
- */
 export async function getContentBySlug(
   locale: Locale,
   type: "docs" | "blog",
@@ -83,7 +71,6 @@ export async function getContentBySlug(
   let filePath = "";
   
   if (locale === "zh") {
-    // Chinese: look for .zh.mdx or .zh.md
     const zhMdxPath = path.join(dir, `${slug}.zh.mdx`);
     const zhMdPath = path.join(dir, `${slug}.zh.md`);
     
@@ -92,7 +79,6 @@ export async function getContentBySlug(
     } else if (fs.existsSync(zhMdPath)) {
       filePath = zhMdPath;
     } else {
-      // Fallback to English version if Chinese doesn't exist
       const enMdxPath = path.join(dir, `${slug}.mdx`);
       const enMdPath = path.join(dir, `${slug}.md`);
       
@@ -103,7 +89,6 @@ export async function getContentBySlug(
       }
     }
   } else {
-    // English: look for .mdx or .md (without .zh)
     const mdxPath = path.join(dir, `${slug}.mdx`);
     const mdPath = path.join(dir, `${slug}.md`);
     
@@ -127,13 +112,11 @@ export async function getContentBySlug(
     description: meta.description,
     date: meta.date,
     order: meta.order ? parseInt(meta.order, 10) : undefined,
+    group: meta.group,
     content,
   };
 }
 
-/**
- * Get all docs with metadata for sidebar/navigation
- */
 export async function getAllDocsMetadata(locale: Locale): Promise<ContentMeta[]> {
   const slugs = getContentSlugs(locale, "docs");
   const docs: ContentMeta[] = [];
@@ -146,11 +129,11 @@ export async function getAllDocsMetadata(locale: Locale): Promise<ContentMeta[]>
         title: content.title,
         description: content.description,
         order: content.order,
+        group: content.group,
       });
     }
   }
 
-  // Sort by order if available, otherwise by slug
   return docs.sort((a, b) => {
     if (a.order !== undefined && b.order !== undefined) {
       return a.order - b.order;
@@ -159,6 +142,59 @@ export async function getAllDocsMetadata(locale: Locale): Promise<ContentMeta[]>
     if (b.order !== undefined) return 1;
     return a.slug.localeCompare(b.slug);
   });
+}
+
+const GROUP_ORDER = ["getting-started", "creating-skills", "integration", "reference"];
+
+const GROUP_LABELS: Record<string, { en: string; zh: string }> = {
+  "getting-started": { en: "Getting Started", zh: "入门" },
+  "creating-skills": { en: "Creating Skills", zh: "创建 Skill" },
+  "integration": { en: "Integration", zh: "集成使用" },
+  "reference": { en: "Reference", zh: "参考" },
+};
+
+export async function getDocsGrouped(locale: Locale): Promise<DocsGroup[]> {
+  const docs = await getAllDocsMetadata(locale);
+  const groups: Map<string, ContentMeta[]> = new Map();
+
+  for (const doc of docs) {
+    const groupId = doc.group || "other";
+    if (!groups.has(groupId)) {
+      groups.set(groupId, []);
+    }
+    groups.get(groupId)!.push(doc);
+  }
+
+  const result: DocsGroup[] = [];
+  
+  for (const groupId of GROUP_ORDER) {
+    const groupDocs = groups.get(groupId);
+    if (groupDocs && groupDocs.length > 0) {
+      result.push({
+        id: groupId,
+        label: GROUP_LABELS[groupId]?.[locale] || groupId,
+        docs: groupDocs.sort((a, b) => {
+          if (a.order !== undefined && b.order !== undefined) {
+            return a.order - b.order;
+          }
+          if (a.order !== undefined) return -1;
+          if (b.order !== undefined) return 1;
+          return a.slug.localeCompare(b.slug);
+        }),
+      });
+    }
+  }
+
+  const otherDocs = groups.get("other");
+  if (otherDocs && otherDocs.length > 0) {
+    result.push({
+      id: "other",
+      label: locale === "zh" ? "其他" : "Other",
+      docs: otherDocs,
+    });
+  }
+
+  return result;
 }
 
 function parseFrontmatter(content: string): {

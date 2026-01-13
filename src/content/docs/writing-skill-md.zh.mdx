@@ -1,0 +1,200 @@
+---
+title: 编写 SKILL.md
+description: 编写有效 SKILL.md 文件的完整指南
+order: 4
+group: creating-skills
+---
+
+# 编写 SKILL.md
+
+SKILL.md 文件是每个 skill 的核心。本指南涵盖你需要知道的一切。
+
+## 文件结构
+
+每个 SKILL.md 有两部分：
+
+```markdown
+---
+name: my-skill
+description: 此 skill 做什么
+---
+
+# 指令在这里...
+```
+
+## Frontmatter 字段
+
+### 必需字段
+
+#### name
+
+skill 的唯一标识符。
+
+**规则：**
+- 1-64 个字符
+- 仅限小写字母、数字和连字符
+- 不能以连字符开头或结尾
+- 必须与父目录名称匹配
+
+```yaml
+# 正确
+name: pdf-processing
+name: data-analysis
+name: code-review
+
+# 错误
+name: PDF-Processing    # 不允许大写
+name: -pdf              # 不能以连字符开头
+name: pdf--processing   # 不允许连续连字符
+```
+
+#### description
+
+告诉 Agent 何时使用此 skill。
+
+**技巧：**
+- 明确说明 skill 做什么
+- 包含帮助 Agent 匹配任务的关键词
+- 保持在 1024 字符以下
+
+```yaml
+# 好
+description: 从 PDF 文件中提取文本和表格，填写 PDF 表单，合并多个 PDF。在处理 PDF 文档时使用。
+
+# 差
+description: 处理 PDF。
+```
+
+### 可选字段
+
+#### license
+
+```yaml
+license: MIT
+license: Apache-2.0
+license: 见 LICENSE.txt
+```
+
+#### compatibility
+
+环境要求（最多 500 字符）：
+
+```yaml
+compatibility: 需要 Python 3.9+ 和 pdfplumber 包
+compatibility: 适用于 Claude Code 和类似 Agent
+```
+
+#### metadata
+
+自定义键值对：
+
+```yaml
+metadata:
+  author: your-name
+  version: "1.0"
+  category: productivity
+```
+
+#### allowed-tools（实验性）
+
+skill 预批准的工具：
+
+```yaml
+allowed-tools: Bash(git:*) Bash(jq:*) Read
+```
+
+## 编写正文
+
+正文包含你的实际指令。没有严格的格式 - 写任何有助于 Agent 成功的内容。
+
+### 推荐部分
+
+#### 1. 何时使用此 skill
+
+skill 适用的明确标准：
+
+```markdown
+## 何时使用此 skill
+
+在以下情况使用此 skill：
+- 用户要求处理 PDF 文件
+- 用户提到从文档中提取文本
+- 用户需要填写 PDF 表单
+```
+
+#### 2. 分步指令
+
+```markdown
+## 指令
+
+1. 首先，确定需要的 PDF 操作类型
+2. 对于文本提取：
+   - 使用 extract_text.py 脚本
+   - 通过处理每一页来处理多页文档
+3. 对于表单填写：
+   - 首先解析表单字段
+   - 填写前验证输入数据
+```
+
+#### 3. 示例
+
+显示预期的输入和输出：
+
+```markdown
+## 示例
+
+### 提取文本
+
+**输入：** "从 report.pdf 提取文本"
+
+**操作：**
+\`\`\`bash
+python scripts/extract_text.py report.pdf
+\`\`\`
+
+**输出：** 返回提取的文本给用户
+```
+
+#### 4. 边缘情况
+
+```markdown
+## 边缘情况
+
+- **加密 PDF**：处理前询问用户密码
+- **扫描文档**：警告可能需要 OCR
+- **大文件**：分块处理以避免内存问题
+```
+
+## 最佳实践
+
+### 保持专注
+
+每个 skill 应该做好一件事。如果你的 SKILL.md 超过 500 行，考虑：
+- 拆分成多个 skills
+- 将细节移到 reference 文件
+
+### 为 Agent 编写
+
+记住你的受众是 AI Agent：
+- 明确步骤
+- 包含要运行的确切命令
+- 指定预期输出
+
+### 使用文件引用
+
+对于详细内容，引用外部文件：
+
+```markdown
+完整的 API 文档请参阅 [references/API.md](references/API.md)。
+
+运行主脚本：
+\`\`\`bash
+python scripts/main.py
+\`\`\`
+```
+
+## 下一步
+
+- **[脚本和资源](/zh/docs/scripts-and-resources)** - 添加可执行代码
+- **[最佳实践](/zh/docs/best-practices)** - 创建有效 skills 的技巧
+- **[规范](/zh/docs/specification)** - 完整格式参考

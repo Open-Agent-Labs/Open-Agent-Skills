@@ -1,0 +1,330 @@
+---
+title: Using Skills
+description: How to find and use existing Agent Skills
+order: 7
+group: integration
+---
+
+# Using Skills
+
+Learn how to find, install, and use existing Agent Skills.
+
+## Finding Skills
+
+### Official Examples
+
+Browse the official skill examples on GitHub:
+
+- [anthropics/skills](https://github.com/anthropics/skills) - Example skills from Anthropic
+
+### Community Skills
+
+Check community repositories and skill registries (coming soon).
+
+## Installing Skills
+
+Skills are just folders - "installing" means putting them where your agent can find them.
+
+### Supported locations
+
+Agents typically search these paths:
+
+| Path | Scope |
+|------|-------|
+| `.opencode/skill/<name>/SKILL.md` | Project (OpenCode) |
+| `.claude/skills/<name>/SKILL.md` | Project (Claude-compatible) |
+| `~/.config/opencode/skill/<name>/SKILL.md` | Global (OpenCode) |
+| `~/.claude/skills/<name>/SKILL.md` | Global (Claude-compatible) |
+
+### Local installation
+
+```bash
+# Clone or download the skill into your project
+git clone https://github.com/example/my-skill.git .opencode/skill/my-skill
+
+# Or create from scratch
+mkdir -p .opencode/skill/pdf-processor
+# Add SKILL.md and other files
+```
+
+### Directory structure
+
+Organize your skills in a dedicated folder:
+
+```
+.opencode/skill/
+├── pdf-processor/
+│   └── SKILL.md
+├── code-reviewer/
+│   └── SKILL.md
+└── data-analyzer/
+    ├── SKILL.md
+    └── scripts/
+        └── analyze.py
+```
+
+## How Skill Discovery Works
+
+### Walk-up discovery
+
+For project-local paths, the agent walks up from your current working directory until it reaches the git worktree root. It loads any matching `skill/*/SKILL.md` in `.opencode/` and `.claude/skills/*/SKILL.md` along the way.
+
+This means you can have:
+- Repository-level skills in the repo root
+- Organization-level skills in parent directories
+- Personal skills in your home directory
+
+### Discovery order
+
+1. Current directory `.opencode/skill/` and `.claude/skills/`
+2. Parent directories up to git root
+3. Global `~/.config/opencode/skill/`
+4. Global `~/.claude/skills/`
+
+Skills with the same name in closer directories override those in parent directories.
+
+## How Agents See Skills
+
+### The skill tool
+
+Agents are given a `skill` tool with available skills listed in its description:
+
+```xml
+<available_skills>
+  <skill>
+    <name>pdf-processor</name>
+    <description>Extract text and tables from PDF files</description>
+  </skill>
+  <skill>
+    <name>code-reviewer</name>
+    <description>Review code for issues and best practices</description>
+  </skill>
+</available_skills>
+```
+
+### Loading a skill
+
+When an agent decides a skill is relevant, it calls:
+
+```javascript
+skill({ name: "pdf-processor" })
+```
+
+This loads the full `SKILL.md` content into the agent's context.
+
+## Configuring Permissions
+
+Control which skills agents can access using pattern-based permissions in your agent's config file (e.g., `opencode.json`):
+
+```json
+{
+  "permission": {
+    "skill": {
+      "*": "allow",
+      "pr-review": "allow",
+      "internal-*": "deny",
+      "experimental-*": "ask"
+    }
+  }
+}
+```
+
+### Permission values
+
+| Permission | Behavior |
+|------------|----------|
+| `allow` | Skill loads immediately |
+| `deny` | Skill hidden from agent, access rejected |
+| `ask` | User prompted for approval before loading |
+
+### Pattern matching
+
+Patterns support wildcards:
+- `*` matches all skills
+- `internal-*` matches `internal-docs`, `internal-tools`, etc.
+- Specific names take precedence over wildcards
+
+## Per-Agent Permissions
+
+Give specific agents different permissions than the global defaults.
+
+### For custom agents (in agent frontmatter)
+
+```yaml
+---
+permission:
+  skill:
+    "documents-*": "allow"
+---
+```
+
+### For built-in agents (in config file)
+
+```json
+{
+  "agent": {
+    "plan": {
+      "permission": {
+        "skill": {
+          "internal-*": "allow"
+        }
+      }
+    }
+  }
+}
+```
+
+## Disabling Skills
+
+Completely disable skills for agents that shouldn't use them:
+
+### For custom agents
+
+```yaml
+---
+tools:
+  skill: false
+---
+```
+
+### For built-in agents
+
+```json
+{
+  "agent": {
+    "plan": {
+      "tools": {
+        "skill": false
+      }
+    }
+  }
+}
+```
+
+When disabled, the `<available_skills>` section is omitted entirely.
+
+## Using Skills in Practice
+
+### Automatic activation
+
+Most agents automatically detect when a skill is relevant:
+
+```
+User: "I need to extract text from report.pdf"
+
+Agent: (Detects pdf-processor skill is relevant)
+       (Calls skill({ name: "pdf-processor" }))
+       (Loads SKILL.md into context)
+       (Follows instructions to process the file)
+```
+
+### Manual activation
+
+You can explicitly request a skill:
+
+```
+User: "Use the pdf-processor skill to extract text from report.pdf"
+```
+
+### Checking available skills
+
+Ask your agent what skills are available:
+
+```
+User: "What skills do you have access to?"
+
+Agent: "I have access to the following skills:
+        - pdf-processor: Extract text and tables from PDFs
+        - code-reviewer: Review code for issues
+        - data-analyzer: Analyze CSV data files"
+```
+
+## Skill Permissions
+
+### Script execution
+
+Skills may include executable scripts. Consider:
+
+- **Trust**: Only use skills from trusted sources
+- **Review**: Check scripts before allowing execution
+- **Sandbox**: Run in isolated environments when possible
+
+### File access
+
+Skills may need to read/write files:
+
+- Grant minimal necessary permissions
+- Be cautious with skills that modify files
+- Keep backups of important data
+
+## Troubleshooting
+
+### Skill not showing up
+
+If a skill doesn't appear in the available list:
+
+1. **Check filename**: Verify `SKILL.md` is spelled in ALL CAPS
+2. **Check frontmatter**: Ensure it includes both `name` and `description`
+3. **Check uniqueness**: Skill names must be unique across all locations
+4. **Check permissions**: Skills with `deny` permission are hidden from agents
+5. **Restart agent**: The agent may need to rescan skill directories
+
+### Skill not activating
+
+```
+Problem: Agent doesn't use the skill when expected
+
+Solutions:
+1. Check the skill's description matches the task keywords
+2. Try explicitly mentioning the skill name
+3. Verify the skill's frontmatter is valid YAML
+```
+
+### Script errors
+
+```
+Problem: Skill scripts fail to run
+
+Solutions:
+1. Check script dependencies are installed
+2. Verify file permissions (chmod +x for bash scripts)
+3. Check script path references are correct
+```
+
+## Validating Skills
+
+Before using a skill, validate it:
+
+```bash
+# Using skills-ref CLI
+skills-ref validate ./my-skill
+
+# Check output for errors or warnings
+```
+
+### Common validation issues
+
+| Issue | Fix |
+|-------|-----|
+| Invalid name format | Use lowercase and hyphens only |
+| Missing description | Add description to frontmatter |
+| Name mismatch | Ensure name matches directory name |
+| Description too long | Keep under 1024 characters |
+
+## Updating Skills
+
+Skills are version-controlled like any code:
+
+```bash
+# If using git
+cd .opencode/skill/my-skill
+git pull
+
+# Manual update
+# Replace files with new version
+```
+
+## Next steps
+
+- **[Integrating Skills](/docs/integrating)** - Add skills support to your own agent
+- **[Examples](/docs/examples)** - Browse example skills

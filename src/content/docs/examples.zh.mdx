@@ -1,0 +1,252 @@
+---
+title: 示例
+description: 浏览 Agent Skills 示例和实现
+order: 10
+group: reference
+---
+
+# 示例
+
+浏览真实的 Agent Skills 示例来学习。
+
+## 官方示例 Skills
+
+官方 skills 仓库包含参考实现：
+
+### [anthropics/skills](https://github.com/anthropics/skills)
+
+由 Anthropic 维护的示例 skills，包括：
+
+- 文档处理 skills
+- 代码分析 skills
+- 数据处理 skills
+
+## 示例：PDF 处理器
+
+一个完整的 PDF 文件处理 skill：
+
+```
+pdf-processor/
+├── SKILL.md
+├── scripts/
+│   ├── extract_text.py
+│   ├── extract_tables.py
+│   └── merge_pdfs.py
+└── references/
+    └── FORMATS.md
+```
+
+### SKILL.md
+
+```markdown
+---
+name: pdf-processor
+description: 从 PDF 文件提取文本和表格，合并多个 PDF。在处理 PDF 文档时使用。
+metadata:
+  author: example
+  version: "1.0"
+---
+
+# PDF 处理器
+
+## 何时使用此 skill
+
+在以下情况使用此 skill：
+- 需要从 PDF 文件提取文本
+- 想要从 PDF 提取表格
+- 需要将多个 PDF 合并为一个
+
+## 文本提取
+
+从 PDF 提取文本：
+
+\`\`\`bash
+python scripts/extract_text.py <input.pdf>
+\`\`\`
+
+## 表格提取
+
+将表格提取为 CSV：
+
+\`\`\`bash
+python scripts/extract_tables.py <input.pdf> --output tables/
+\`\`\`
+
+## 合并 PDF
+
+合并多个 PDF：
+
+\`\`\`bash
+python scripts/merge_pdfs.py file1.pdf file2.pdf -o merged.pdf
+\`\`\`
+
+## 支持的格式
+
+支持的 PDF 版本请参阅 [references/FORMATS.md](references/FORMATS.md)。
+```
+
+## 示例：Git 提交助手
+
+一个没有脚本的简单 skill：
+
+```
+git-commit-helper/
+└── SKILL.md
+```
+
+### SKILL.md
+
+```markdown
+---
+name: git-commit-helper
+description: 帮助编写遵循 conventional commits 格式的更好的 git 提交消息。
+---
+
+# Git 提交助手
+
+## 何时使用此 skill
+
+当用户请求帮助编写提交消息或提到 "conventional commits" 时使用。
+
+## 提交格式
+
+\`\`\`
+<type>(<scope>): <subject>
+
+<body>
+
+<footer>
+\`\`\`
+
+## 类型
+
+| 类型 | 用于 |
+|------|------|
+| feat | 新功能 |
+| fix | Bug 修复 |
+| docs | 文档 |
+| style | 格式化 |
+| refactor | 代码重构 |
+| test | 添加测试 |
+| chore | 维护 |
+
+## 示例
+
+### 功能
+\`\`\`
+feat(auth): 添加密码重置功能
+
+用户现在可以通过电子邮件重置密码。
+Closes #123
+\`\`\`
+
+### Bug 修复
+\`\`\`
+fix(api): 处理服务器的空响应
+
+添加空值检查以防止服务器返回空响应时崩溃。
+\`\`\`
+
+### 破坏性更改
+\`\`\`
+feat(api)!: 更改响应格式
+
+BREAKING CHANGE: API 现在返回 JSON:API 格式。
+详情请参阅迁移指南。
+\`\`\`
+```
+
+## 示例：代码审查器
+
+一个带有 references 的 skill：
+
+```
+code-reviewer/
+├── SKILL.md
+└── references/
+    ├── PATTERNS.md
+    └── SECURITY.md
+```
+
+### SKILL.md
+
+```markdown
+---
+name: code-reviewer
+description: 审查代码的 bug、安全问题和最佳实践。
+compatibility: 最适合 Python 和 JavaScript 代码。
+---
+
+# 代码审查器
+
+## 何时使用此 skill
+
+审查代码时使用：
+- Bug 和逻辑错误
+- 安全漏洞
+- 性能问题
+- 代码风格和最佳实践
+
+## 审查流程
+
+1. 仔细阅读代码
+2. 检查常见问题（见下文）
+3. 提供具体、可操作的反馈
+4. 用示例建议改进
+
+## 要检查的常见问题
+
+### 逻辑错误
+- 差一错误
+- Null/undefined 处理
+- 边缘情况
+
+### 安全（见 [references/SECURITY.md](references/SECURITY.md)）
+- 输入验证
+- SQL 注入
+- XSS 漏洞
+
+### 性能
+- N+1 查询
+- 不必要的循环
+- 内存泄漏
+
+## 输出格式
+
+\`\`\`markdown
+## 代码审查：[文件名]
+
+### 关键问题
+- [问题描述和位置]
+- [建议修复]
+
+### 改进建议
+- [建议和理由]
+
+### 正面评价
+- [做得好的地方]
+\`\`\`
+```
+
+## 创建你自己的
+
+使用这些示例作为起点：
+
+1. **复制一个类似的 skill** 作为模板
+2. **根据你的用例修改 SKILL.md**
+3. **如果需要添加脚本**
+4. **发布前彻底测试**
+
+## 贡献示例
+
+想分享你的 skill？
+
+1. 确保它遵循[规范](/zh/docs/specification)
+2. 使用 skills-ref 验证器测试
+3. 提交到社区仓库（即将推出）
+
+## 资源
+
+- [GitHub: anthropics/skills](https://github.com/anthropics/skills) - 官方示例
+- [GitHub: agentskills/agentskills](https://github.com/agentskills/agentskills) - 参考库
+- [规范](/zh/docs/specification) - 完整格式参考

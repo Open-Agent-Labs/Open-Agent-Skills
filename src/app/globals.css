@@ -24,3 +24,180 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Code block styling for dark mode */
+@media (prefers-color-scheme: dark) {
+  .prose pre {
+    background-color: #1e1e1e !important;
+    border: 1px solid #333;
+  }
+
+  .prose code {
+    background-color: #2d2d2d !important;
+    color: #e6e6e6 !important;
+    padding: 0.125rem 0.25rem;
+    border-radius: 0.25rem;
+  }
+
+  .prose pre code {
+    background-color: transparent !important;
+    padding: 0;
+    border-radius: 0;
+  }
+}
+
+/* Also handle .dark class for manual dark mode */
+.dark .prose pre {
+  background-color: #1e1e1e !important;
+  border: 1px solid #333;
+}
+
+.dark .prose code {
+  background-color: #2d2d2d !important;
+  color: #e6e6e6 !important;
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+.dark .prose pre code {
+  background-color: transparent !important;
+  padding: 0;
+  border-radius: 0;
+}
+
+/* 通用规则:移除代码块内 code 元素的背景和内边距 */
+pre code {
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  color: inherit !important;
+}
+
+/* ========================================
+   rehype-pretty-code 代码高亮样式
+   ======================================== */
+
+/* 代码块容器 */
+[data-rehype-pretty-code-figure] {
+  margin: 1.5rem 0;
+}
+
+/* 代码块标题（如果有的话） */
+[data-rehype-pretty-code-title] {
+  background-color: #24292e;
+  color: #e1e4e8;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  border-top-left-radius: 0.5rem;
+  border-top-right-radius: 0.5rem;
+  border-bottom: 1px solid #444;
+}
+
+[data-rehype-pretty-code-title]+pre {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  margin-top: 0;
+}
+
+/* 代码块 pre 样式 */
+[data-rehype-pretty-code-figure] pre {
+  background-color: #24292e;
+  padding: 1rem 0;
+  overflow-x: auto;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  border: 1px solid #30363d;
+}
+
+/* 代码块 code 样式 */
+[data-rehype-pretty-code-figure] pre code {
+  display: grid;
+  counter-reset: line;
+  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+}
+
+/* 代码行样式 */
+[data-rehype-pretty-code-figure] pre code>[data-line] {
+  padding: 0 1.25rem;
+  border-left: 2px solid transparent;
+}
+
+/* 行号样式 */
+[data-rehype-pretty-code-figure] pre code [data-line]::before {
+  counter-increment: line;
+  content: counter(line);
+  display: inline-block;
+  width: 1.5rem;
+  margin-right: 1.5rem;
+  text-align: right;
+  color: #6e7681;
+  font-size: 0.75rem;
+}
+
+/* 高亮行样式 */
+[data-rehype-pretty-code-figure] pre code>[data-line].highlighted {
+  background-color: rgba(99, 179, 237, 0.15);
+  border-left-color: #3b82f6;
+}
+
+/* 高亮字符（单词）样式 */
+[data-rehype-pretty-code-figure] pre code .word {
+  background-color: rgba(99, 179, 237, 0.25);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+}
+
+/* 内联代码样式（非代码块） */
+:not([data-rehype-pretty-code-figure])>code {
+  background-color: #f1f5f9;
+  color: #0f172a;
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-family: var(--font-mono), ui-monospace, monospace;
+}
+
+/* 暗色模式内联代码 */
+@media (prefers-color-scheme: dark) {
+  :not([data-rehype-pretty-code-figure])>code {
+    background-color: #374151;
+    color: #e5e7eb;
+  }
+}
+
+.dark :not([data-rehype-pretty-code-figure])>code {
+  background-color: #374151;
+  color: #e5e7eb;
+}
+
+/* 代码块语言标签（可选） */
+[data-rehype-pretty-code-figure] pre::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0;
+  right: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: #6e7681;
+  font-family: var(--font-mono), ui-monospace, monospace;
+  text-transform: uppercase;
+}
+
+[data-rehype-pretty-code-figure] pre {
+  position: relative;
+}
+
+/* 隐藏单行代码块的行号 */
+[data-rehype-pretty-code-figure] pre code[data-line-numbers-max-digits="1"]>[data-line]::before {
+  width: 1rem;
+}
+
+[data-rehype-pretty-code-figure] pre code[data-line-numbers-max-digits="2"]>[data-line]::before {
+  width: 1.5rem;
+}
+
+[data-rehype-pretty-code-figure] pre code[data-line-numbers-max-digits="3"]>[data-line]::before {
+  width: 2rem;
+}

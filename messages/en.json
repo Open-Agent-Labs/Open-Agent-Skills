@@ -9,12 +9,12 @@
     "blog": "Blog"
   },
   "home": {
-    "title": "Open Agent Skills",
+    "title": "Agent Skills",
     "subtitle": "A simple, open format for giving agents new capabilities and expertise",
     "getStarted": "Get Started",
     "viewDocs": "View Documentation",
     "features": {
-      "title": "What can Open Agent Skills enable?",
+      "title": "What can Agent Skills enable?",
       "expertise": {
         "title": "Domain Expertise",
         "description": "Package specialized knowledge into reusable instructions, from legal review processes to data analysis pipelines."
@@ -32,7 +32,7 @@
         "description": "Reuse the same skill across different skills-compatible agent products."
       }
     },
-    "whyTitle": "Why Open Agent Skills?",
+    "whyTitle": "Why Agent Skills?",
     "whyDescription": "Agents are increasingly capable, but often don't have the context they need to do real work reliably. Skills solve this by giving agents access to procedural knowledge they can load on demand."
   },
   "docs": {

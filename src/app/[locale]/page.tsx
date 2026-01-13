@@ -12,7 +12,7 @@ export default async function HomePage({
   const t = await getTranslations("home");
   const nav = await getTranslations("nav");
 
-  const docsPath = locale === "en" ? "/docs/overview" : `/${locale}/docs/overview`;
+  const docsPath = locale === "en" ? "/docs/introduction" : `/${locale}/docs/introduction`;
   const homePath = locale === "en" ? "/" : `/${locale}`;
 
   return (

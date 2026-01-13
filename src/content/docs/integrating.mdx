@@ -1,0 +1,524 @@
+---
+title: Integrating Skills
+description: Add Agent Skills support to your own agent or tool
+order: 8
+group: integration
+---
+
+# Integrating Skills
+
+This guide explains how to add skills support to an AI agent or development tool.
+
+## Overview
+
+A skills-compatible agent needs to:
+
+1. **Discover** skills in configured directories
+2. **Load metadata** (name and description) at startup
+3. **Present** available skills to the agent via a tool description
+4. **Activate** skills by loading full instructions when requested
+5. **Execute** scripts and access resources as needed
+6. **Enforce** permissions based on configuration
+
+## Integration Approaches
+
+### Filesystem-based agents
+
+Agents that operate within a computer environment (bash/unix):
+
+- Skills are activated when models issue shell commands like `cat /path/to/skill/SKILL.md`
+- Bundled resources are accessed through shell commands
+- Most flexible and capable approach
+
+### Tool-based agents
+
+Agents without a dedicated computer environment:
+
+- Implement a `skill` tool for loading skills
+- More controlled but less flexible
+- Recommended for most integrations
+
+## Step 1: Skill Discovery
+
+### Supported paths
+
+Scan these directories for valid skills:
+
+```javascript
+const SKILL_PATHS = {
+  project: [
+    '.opencode/skill',      // OpenCode native
+    '.claude/skills'        // Claude-compatible
+  ],
+  global: [
+    '~/.config/opencode/skill',  // OpenCode native
+    '~/.claude/skills'           // Claude-compatible
+  ]
+};
+```
+
+### Walk-up discovery
+
+For project-local paths, walk up from the current working directory to the git worktree root:
+
+```javascript
+function discoverProjectSkills(cwd) {
+  const skills = [];
+  let dir = cwd;
+  const gitRoot = findGitRoot(cwd);
+  
+  while (dir && dir.startsWith(gitRoot)) {
+    for (const skillPath of SKILL_PATHS.project) {
+      const fullPath = path.join(dir, skillPath);
+      if (fs.existsSync(fullPath)) {
+        skills.push(...scanSkillDirectory(fullPath));
+      }
+    }
+    dir = path.dirname(dir);
+    if (dir === path.dirname(dir)) break; // reached root
+  }
+  
+  return skills;
+}
+
+function scanSkillDirectory(skillsDirectory) {
+  const skills = [];
+  
+  for (const entry of fs.readdirSync(skillsDirectory)) {
+    const skillPath = path.join(skillsDirectory, entry);
+    const skillMdPath = path.join(skillPath, "SKILL.md");
+    
+    if (fs.existsSync(skillMdPath)) {
+      skills.push({
+        name: entry,
+        path: skillPath,
+        skillMdPath: skillMdPath
+      });
+    }
+  }
+  
+  return skills;
+}
+```
+
+### Deduplication
+
+Skills with the same name in closer directories override those in parent directories:
+
+```javascript
+function deduplicateSkills(skills) {
+  const seen = new Map();
+  for (const skill of skills) {
+    if (!seen.has(skill.name)) {
+      seen.set(skill.name, skill);
+    }
+  }
+  return Array.from(seen.values());
+}
+```
+
+## Step 2: Loading Metadata
+
+Parse only the frontmatter at startup to minimize context usage:
+
+```javascript
+function parseMetadata(skillMdPath) {
+  const content = fs.readFileSync(skillMdPath, "utf8");
+  const frontmatter = extractYAMLFrontmatter(content);
+  
+  // Validate required fields
+  if (!frontmatter.name || !frontmatter.description) {
+    throw new Error(`Invalid skill: missing name or description`);
+  }
+  
+  // Validate name format
+  if (!isValidSkillName(frontmatter.name)) {
+    throw new Error(`Invalid skill name: ${frontmatter.name}`);
+  }
+  
+  return {
+    name: frontmatter.name,
+    description: frontmatter.description,
+    path: path.dirname(skillMdPath)
+  };
+}
+
+function isValidSkillName(name) {
+  // 1-64 chars, lowercase alphanumeric with single hyphen separators
+  return /^[a-z0-9]+(-[a-z0-9]+)*$/.test(name) && name.length <= 64;
+}
+
+function extractYAMLFrontmatter(content) {
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return {};
+  
+  const yaml = {};
+  match[1].split("\n").forEach(line => {
+    const [key, ...value] = line.split(":");
+    if (key && value.length) {
+      yaml[key.trim()] = value.join(":").trim();
+    }
+  });
+  return yaml;
+}
+```
+
+## Step 3: Injecting into Tool Description
+
+Include skill metadata in the `skill` tool's description:
+
+### XML format (recommended)
+
+```xml
+<available_skills>
+  <skill>
+    <name>pdf-processing</name>
+    <description>Extracts text and tables from PDF files, fills forms, merges documents.</description>
+  </skill>
+  <skill>
+    <name>data-analysis</name>
+    <description>Analyzes datasets, generates charts, and creates summary reports.</description>
+  </skill>
+</available_skills>
+```
+
+### Generation code
+
+```javascript
+function generateSkillsPrompt(skills) {
+  if (skills.length === 0) return '';
+  
+  let xml = "<available_skills>\n";
+  
+  for (const skill of skills) {
+    xml += "  <skill>\n";
+    xml += `    <name>${escapeXml(skill.name)}</name>\n`;
+    xml += `    <description>${escapeXml(skill.description)}</description>\n`;
+    xml += "  </skill>\n";
+  }
+  
+  xml += "</available_skills>";
+  return xml;
+}
+```
+
+### Context budget
+
+- Each skill adds ~50-100 tokens to the tool description
+- Keep metadata concise
+- Consider limiting total skills if context is constrained
+
+## Step 4: The Skill Tool
+
+Implement a tool that agents can call to load a skill:
+
+```javascript
+const skillTool = {
+  name: "skill",
+  description: `Load a skill to get detailed instructions for a specific task.
+
+${generateSkillsPrompt(availableSkills)}`,
+  
+  parameters: {
+    type: "object",
+    properties: {
+      name: {
+        type: "string",
+        description: "The name of the skill to load"
+      }
+    },
+    required: ["name"]
+  },
+  
+  execute: async ({ name }) => {
+    const skill = findSkillByName(name);
+    if (!skill) {
+      return { error: `Skill not found: ${name}` };
+    }
+    
+    // Check permissions
+    const permission = getSkillPermission(name);
+    if (permission === 'deny') {
+      return { error: `Access denied to skill: ${name}` };
+    }
+    if (permission === 'ask') {
+      const approved = await askUserApproval(name);
+      if (!approved) {
+        return { error: `User denied access to skill: ${name}` };
+      }
+    }
+    
+    const content = fs.readFileSync(skill.skillMdPath, "utf8");
+    return { content };
+  }
+};
+```
+
+## Step 5: Configure Permissions
+
+### Permission configuration
+
+Control which skills agents can access using pattern-based permissions:
+
+```json
+{
+  "permission": {
+    "skill": {
+      "*": "allow",
+      "pr-review": "allow",
+      "internal-*": "deny",
+      "experimental-*": "ask"
+    }
+  }
+}
+```
+
+### Permission values
+
+| Permission | Behavior |
+|------------|----------|
+| `allow` | Skill loads immediately |
+| `deny` | Skill hidden from agent, access rejected |
+| `ask` | User prompted for approval before loading |
+
+### Pattern matching implementation
+
+```javascript
+function getSkillPermission(skillName, config) {
+  const permissions = config.permission?.skill || {};
+  
+  // Check exact match first
+  if (permissions[skillName]) {
+    return permissions[skillName];
+  }
+  
+  // Check patterns (most specific first)
+  const patterns = Object.keys(permissions)
+    .filter(p => p.includes('*'))
+    .sort((a, b) => b.length - a.length);
+  
+  for (const pattern of patterns) {
+    const regex = new RegExp('^' + pattern.replace('*', '.*') + '$');
+    if (regex.test(skillName)) {
+      return permissions[pattern];
+    }
+  }
+  
+  // Default to allow
+  return 'allow';
+}
+```
+
+### Filter denied skills from listing
+
+Skills with `deny` permission should not appear in the available skills list:
+
+```javascript
+function getVisibleSkills(skills, config) {
+  return skills.filter(skill => {
+    const permission = getSkillPermission(skill.name, config);
+    return permission !== 'deny';
+  });
+}
+```
+
+## Step 6: Per-Agent Overrides
+
+Allow different agents to have different permissions:
+
+### Agent-specific configuration
+
+```json
+{
+  "agent": {
+    "plan": {
+      "permission": {
+        "skill": {
+          "internal-*": "allow"
+        }
+      }
+    },
+    "build": {
+      "permission": {
+        "skill": {
+          "*": "allow"
+        }
+      }
+    }
+  }
+}
+```
+
+### Resolution order
+
+1. Agent-specific permission (if defined)
+2. Global permission (fallback)
+3. Default allow (if nothing defined)
+
+```javascript
+function getEffectivePermission(skillName, agentName, config) {
+  // Check agent-specific first
+  const agentConfig = config.agent?.[agentName];
+  if (agentConfig?.permission?.skill) {
+    const perm = matchPermission(skillName, agentConfig.permission.skill);
+    if (perm) return perm;
+  }
+  
+  // Fall back to global
+  return getSkillPermission(skillName, config);
+}
+```
+
+## Step 7: Disabling Skills Entirely
+
+Allow agents to be configured without skills support:
+
+### Configuration
+
+```json
+{
+  "agent": {
+    "plan": {
+      "tools": {
+        "skill": false
+      }
+    }
+  }
+}
+```
+
+### Implementation
+
+```javascript
+function getAgentTools(agentName, config, allTools) {
+  const agentConfig = config.agent?.[agentName] || {};
+  const toolConfig = agentConfig.tools || {};
+  
+  return allTools.filter(tool => {
+    // Check if tool is explicitly disabled
+    if (toolConfig[tool.name] === false) {
+      return false;
+    }
+    return true;
+  });
+}
+```
+
+When the skill tool is disabled, omit the `<available_skills>` section entirely.
+
+## Step 8: Resource Access
+
+### Scripts
+
+Allow agents to execute skill scripts:
+
+```javascript
+function executeSkillScript(skillName, scriptPath, args) {
+  const skill = findSkillByName(skillName);
+  const fullPath = path.join(skill.path, "scripts", scriptPath);
+  
+  // Validate path is within skill directory
+  if (!fullPath.startsWith(skill.path)) {
+    throw new Error("Invalid script path");
+  }
+  
+  return spawnSync(fullPath, args);
+}
+```
+
+### References
+
+Load reference files on demand:
+
+```javascript
+function loadReference(skillName, refPath) {
+  const skill = findSkillByName(skillName);
+  const fullPath = path.join(skill.path, "references", refPath);
+  
+  return fs.readFileSync(fullPath, "utf8");
+}
+```
+
+## Security Considerations
+
+### Script execution
+
+| Risk | Mitigation |
+|------|------------|
+| Malicious code | Only execute from trusted skills |
+| System access | Run in sandboxed environment |
+| Data exfiltration | Monitor network access |
+
+### Recommendations
+
+1. **Sandboxing**: Run scripts in isolated environments
+2. **Allowlisting**: Only execute scripts from trusted skills
+3. **Confirmation**: Ask users before dangerous operations
+4. **Logging**: Record all script executions for auditing
+
+```javascript
+async function executeWithConfirmation(command, skill) {
+  const confirmed = await askUser(
+    `Skill "${skill.name}" wants to run: ${command}\nAllow?`
+  );
+  
+  if (confirmed) {
+    logExecution(skill, command);
+    return execute(command);
+  }
+  
+  return { cancelled: true };
+}
+```
+
+## Reference Implementation
+
+Use the [skills-ref](https://github.com/agentskills/agentskills/tree/main/skills-ref) library:
+
+### Validate skills
+
+```bash
+skills-ref validate /path/to/skill
+```
+
+### Generate prompt XML
+
+```bash
+skills-ref to-prompt /path/to/skills/*
+```
+
+### Python library
+
+```python
+from skills_ref import Skill, validate_skill
+
+# Load and validate
+skill = Skill.from_path("/path/to/skill")
+errors = validate_skill(skill)
+
+# Generate prompt
+prompt = skill.to_prompt_xml()
+```
+
+## Testing Your Integration
+
+### Checklist
+
+- [ ] Skills are discovered from all supported paths
+- [ ] Walk-up discovery finds skills in parent directories
+- [ ] Skill metadata is parsed without errors
+- [ ] Skills appear in the tool description
+- [ ] Agent can call the skill tool to load skills
+- [ ] Permissions are enforced correctly
+- [ ] Denied skills are hidden from the listing
+- [ ] `ask` permission prompts the user
+- [ ] Per-agent overrides work correctly
+- [ ] Skills can be disabled per-agent
+- [ ] Scripts execute correctly (if supported)
+- [ ] References load on demand
+- [ ] Security measures are in place
+
+## Next steps
+
+- **[Specification](/docs/specification)** - Complete format reference
+- **[Examples](/docs/examples)** - Browse example implementations

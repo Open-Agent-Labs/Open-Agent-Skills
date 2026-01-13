@@ -1,0 +1,135 @@
+---
+title: 核心概念
+description: 了解 Agent Skills 的工作原理
+order: 3
+group: getting-started
+---
+
+# 核心概念
+
+理解这些概念将帮助你创建更有效的 skills。
+
+## 渐进式加载
+
+Skills 设计用于**高效的上下文管理**。Agent 不会一次加载所有内容 - 它们按需渐进式加载：
+
+```
+┌─────────────────────────────────────────────────────┐
+│  阶段 1：发现（每个 skill 约 100 个 token）           │
+│  Agent 只加载所有 skills 的 name + description       │
+└─────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────┐
+│  阶段 2：激活（建议少于 5000 个 token）              │
+│  当任务匹配时，Agent 加载完整的 SKILL.md             │
+└─────────────────────────────────────────────────────┘
+                         ↓
+┌─────────────────────────────────────────────────────┐
+│  阶段 3：资源（按需）                                │
+│  Agent 仅在需要时加载 scripts、references            │
+└─────────────────────────────────────────────────────┘
+```
+
+**为什么这很重要：** 保持 SKILL.md 的专注。将详细参考资料移到单独的文件中。
+
+## Skill 结构
+
+一个完整的 skill 可以包含多个组件：
+
+```
+my-skill/
+├── SKILL.md          # 必需：主要指令
+├── scripts/          # 可选：可执行代码
+│   ├── process.py
+│   └── validate.sh
+├── references/       # 可选：详细文档
+│   ├── API.md
+│   └── examples.md
+└── assets/           # 可选：静态资源
+    ├── template.json
+    └── schema.yaml
+```
+
+### SKILL.md（必需）
+
+唯一必需的文件。包含：
+- **Frontmatter**：元数据（name、description）
+- **正文**：Markdown 格式的指令
+
+### scripts/（可选）
+
+Agent 可以运行的可执行代码：
+- Python、Bash、JavaScript 等
+- 应该是自包含的
+- 包含有用的错误消息
+
+### references/（可选）
+
+按需加载的附加文档：
+- 详细的 API 参考
+- 复杂示例
+- 领域特定知识
+
+### assets/（可选）
+
+静态资源：
+- 模板
+- 配置文件
+- Schema
+
+## SKILL.md 文件
+
+每个 SKILL.md 遵循这个结构：
+
+```markdown
+---
+name: skill-name
+description: 何时以及如何使用此 skill
+---
+
+# Skill 标题
+
+## 何时使用此 skill
+激活的明确标准...
+
+## 指令
+分步指南...
+
+## 示例
+输入/输出示例...
+```
+
+### 必需的 Frontmatter
+
+| 字段 | 描述 |
+|------|------|
+| `name` | 唯一标识符（小写，允许连字符） |
+| `description` | skill 做什么以及何时使用 |
+
+### 可选的 Frontmatter
+
+| 字段 | 描述 |
+|------|------|
+| `license` | 许可证信息 |
+| `compatibility` | 环境要求 |
+| `metadata` | 自定义键值对 |
+
+## Agent 如何使用 Skills
+
+1. **启动时**：Agent 扫描 skill 目录，只加载元数据
+2. **收到用户请求时**：Agent 将任务与 skill 描述匹配
+3. **匹配时**：Agent 将完整的 SKILL.md 读入上下文
+4. **执行期间**：Agent 根据需要加载 scripts/references
+
+## 关键要点
+
+1. **保持 SKILL.md 在 500 行以下** - 将详细内容拆分到 references
+2. **写清晰的描述** - 这是 Agent 找到你的 skill 的方式
+3. **使用渐进式加载** - 不要预先加载所有内容
+4. **包含示例** - 它们帮助 Agent 理解预期行为
+
+## 下一步
+
+- **[编写 SKILL.md](/zh/docs/writing-skill-md)** - skill 格式的完整指南
+- **[脚本和资源](/zh/docs/scripts-and-resources)** - 添加代码和文件
+- **[最佳实践](/zh/docs/best-practices)** - 创建有效 skills 的技巧

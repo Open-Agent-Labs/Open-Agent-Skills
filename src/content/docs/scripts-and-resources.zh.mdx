@@ -1,0 +1,162 @@
+---
+title: 脚本和资源
+description: 为 skills 添加可执行代码和参考资料
+order: 5
+group: creating-skills
+---
+
+# 脚本和资源
+
+Skills 可以包含的不仅仅是指令。了解如何添加可执行代码和参考资料。
+
+## 目录结构
+
+```
+my-skill/
+├── SKILL.md          # 必需
+├── scripts/          # 可执行代码
+│   ├── main.py
+│   ├── helper.sh
+│   └── utils.js
+├── references/       # 文档
+│   ├── API.md
+│   └── EXAMPLES.md
+└── assets/           # 静态文件
+    ├── template.json
+    └── config.yaml
+```
+
+## scripts/
+
+包含 Agent 可以运行的可执行代码。
+
+### 指南
+
+**自包含：**
+```python
+#!/usr/bin/env python3
+"""
+依赖项：requests, pandas
+安装：pip install requests pandas
+"""
+import requests
+import pandas as pd
+```
+
+**包含有用的错误消息：**
+```python
+def process_file(path):
+    if not os.path.exists(path):
+        print(f"错误：找不到文件：{path}")
+        print("请提供有效的文件路径。")
+        sys.exit(1)
+```
+
+**处理边缘情况：**
+```python
+def extract_data(content):
+    if not content:
+        return {"error": "提供的内容为空"}
+    
+    try:
+        return parse(content)
+    except ParseError as e:
+        return {"error": f"解析失败：{e}"}
+```
+
+### 支持的语言
+
+常见选项（取决于 Agent）：
+- **Python** - 最通用
+- **Bash** - 系统操作
+- **JavaScript/Node** - 网络相关任务
+- **任何 CLI 工具** - 如果系统上可用
+
+## references/
+
+按需加载的附加文档。
+
+### 何时使用 references
+
+- 详细的 API 文档
+- 扩展示例
+- 领域特定知识
+- 不总是需要的信息
+
+### 保持文件专注
+
+每个 reference 文件应该覆盖一个主题：
+
+```
+references/
+├── API.md           # API 文档
+├── EXAMPLES.md      # 扩展示例
+├── TROUBLESHOOT.md  # 常见问题
+└── GLOSSARY.md      # 领域术语
+```
+
+### 从 SKILL.md 引用
+
+```markdown
+## 基本用法
+
+[上面的指令]
+
+## 高级用法
+
+高级功能请参阅 [references/ADVANCED.md](references/ADVANCED.md)。
+
+## 故障排除
+
+遇到问题？查看 [references/TROUBLESHOOT.md](references/TROUBLESHOOT.md)。
+```
+
+## assets/
+
+静态资源如模板和配置文件。
+
+### 常见用途
+
+- **模板**：文档模板、配置模板
+- **Schema**：JSON Schema、YAML 定义
+- **数据文件**：查找表、映射
+
+### 示例：模板文件
+
+`assets/report-template.md`：
+```markdown
+# {{title}}
+
+**日期：** {{date}}
+**作者：** {{author}}
+
+## 摘要
+
+{{summary}}
+
+## 详情
+
+{{details}}
+
+## 结论
+
+{{conclusion}}
+```
+
+## SKILL.md 中的文件引用
+
+保持引用一层深度：
+
+```markdown
+# 好 - 直接引用
+参阅 [references/API.md](references/API.md)
+运行：scripts/process.py
+
+# 避免 - 嵌套引用
+参阅 [references/advanced/deep/file.md]
+```
+
+## 下一步
+
+- **[最佳实践](/zh/docs/best-practices)** - 创建有效 skills 的技巧
+- **[示例](/zh/docs/examples)** - 浏览真实的 skill 示例

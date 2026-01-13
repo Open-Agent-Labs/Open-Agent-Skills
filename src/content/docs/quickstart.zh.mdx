@@ -1,0 +1,170 @@
+---
+title: 快速开始
+description: 5 分钟创建你的第一个 Agent Skill
+order: 2
+group: getting-started
+---
+
+# 快速开始
+
+5 分钟创建你的第一个 Agent Skill。
+
+## Skill 存放位置
+
+Skill 可以放在项目本地目录或全局目录中。Agent 会搜索以下位置：
+
+### 项目本地（每个仓库）
+
+```
+.opencode/skill/<skill-name>/SKILL.md    # OpenCode 原生格式
+.claude/skills/<skill-name>/SKILL.md     # Claude 兼容格式
+```
+
+### 全局（用户级别）
+
+```
+~/.config/opencode/skill/<skill-name>/SKILL.md   # OpenCode 原生格式
+~/.claude/skills/<skill-name>/SKILL.md           # Claude 兼容格式
+```
+
+> **注意**：具体路径可能因 Agent 而异，请查阅你的 Agent 文档了解支持的路径。
+
+## 第一步：创建 Skill 文件夹
+
+选择创建 Skill 的位置：
+
+```bash
+# 项目本地（推荐用于项目特定的 skill）
+mkdir -p .opencode/skill/my-first-skill
+
+# 或者全局（用于你想在所有地方使用的 skill）
+mkdir -p ~/.config/opencode/skill/my-first-skill
+```
+
+## 第二步：创建 SKILL.md
+
+在 skill 文件夹中创建名为 `SKILL.md` 的文件：
+
+```bash
+# 项目本地示例
+cat > .opencode/skill/my-first-skill/SKILL.md << 'EOF'
+---
+name: my-first-skill
+description: 一个帮助格式化 Markdown 文档的简单 skill。
+---
+
+# Markdown 格式化工具
+
+## 何时使用此 skill
+
+当用户要求格式化、清理或改进 Markdown 文档时使用此 skill。
+
+## 操作说明
+
+1. 读取用户提供的 Markdown 内容
+2. 修复格式问题：
+   - 确保标题层级一致
+   - 在章节之间添加空行
+   - 为代码块添加语言标识符
+3. 返回格式化后的 Markdown
+
+## 示例
+
+输入：
+```
+#标题
+一些文本
+##副标题
+- 项目1
+- 项目2
+```
+
+输出：
+```markdown
+# 标题
+
+一些文本
+
+## 副标题
+
+- 项目1
+- 项目2
+```
+EOF
+```
+
+## 第三步：验证结构
+
+你的 skill 应该是这样的结构：
+
+```
+.opencode/skill/my-first-skill/
+└── SKILL.md
+```
+
+或者如果使用 Claude 兼容路径：
+
+```
+.claude/skills/my-first-skill/
+└── SKILL.md
+```
+
+## 第四步：测试你的 skill
+
+Skill 就位后，你的 Agent 会自动发现它。你可以这样验证：
+
+```
+用户："你有哪些 skill？"
+```
+
+或者直接调用：
+
+```
+用户："使用 my-first-skill 来格式化这个 markdown..."
+```
+
+## 发现机制是如何工作的
+
+当你运行 Agent 时：
+
+1. Agent 从当前工作目录向上遍历到 git 工作树根目录
+2. 它会在支持的路径中找到所有 `SKILL.md` 文件（`.opencode/skill/*/`、`.claude/skills/*/`）
+3. 它还会检查全局路径（`~/.config/opencode/skill/*/`、`~/.claude/skills/*/`）
+4. Skill 元数据（name 和 description）被加载并提供给 Agent
+
+这意味着父目录中的 skill 也会被发现，从而支持组织级别的 skill。
+
+## SKILL.md 包含什么？
+
+每个 `SKILL.md` 有两个部分：
+
+### 1. Frontmatter（必需）
+
+```yaml
+---
+name: my-first-skill      # 唯一标识符（必须与文件夹名匹配）
+description: 这个 skill 做什么以及何时使用它
+---
+```
+
+### 2. 说明内容（正文）
+
+写任何能帮助 Agent 执行任务的内容：
+- 分步说明
+- 示例
+- 需要处理的边缘情况
+
+## 快速参考
+
+| 路径 | 作用域 | 用途 |
+|------|--------|------|
+| `.opencode/skill/<name>/` | 项目 | 项目特定的工作流 |
+| `.claude/skills/<name>/` | 项目 | Claude 兼容的项目 skill |
+| `~/.config/opencode/skill/<name>/` | 全局 | 你到处都用的个人工具 |
+| `~/.claude/skills/<name>/` | 全局 | Claude 兼容的全局 skill |
+
+## 下一步
+
+- **[核心概念](/zh/docs/concepts)** - 了解渐进式披露和 skill 结构
+- **[编写 SKILL.md](/zh/docs/writing-skill-md)** - 学习所有 frontmatter 选项
+- **[最佳实践](/zh/docs/best-practices)** - 高效 skill 的技巧

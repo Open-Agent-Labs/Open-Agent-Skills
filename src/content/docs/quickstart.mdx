@@ -1,0 +1,170 @@
+---
+title: Quick Start
+description: Create your first Agent Skill in 5 minutes
+order: 2
+group: getting-started
+---
+
+# Quick Start
+
+Create your first Agent Skill in 5 minutes.
+
+## Where to place skills
+
+Skills can be placed in project-local or global directories. Agents search these locations:
+
+### Project-local (per repository)
+
+```
+.opencode/skill/<skill-name>/SKILL.md    # OpenCode native
+.claude/skills/<skill-name>/SKILL.md     # Claude-compatible
+```
+
+### Global (user-wide)
+
+```
+~/.config/opencode/skill/<skill-name>/SKILL.md   # OpenCode native
+~/.claude/skills/<skill-name>/SKILL.md           # Claude-compatible
+```
+
+> **Note**: The exact paths may vary depending on your agent. Check your agent's documentation for supported locations.
+
+## Step 1: Create the skill folder
+
+Choose where to create your skill:
+
+```bash
+# Project-local (recommended for project-specific skills)
+mkdir -p .opencode/skill/my-first-skill
+
+# Or global (for skills you want everywhere)
+mkdir -p ~/.config/opencode/skill/my-first-skill
+```
+
+## Step 2: Create SKILL.md
+
+Create a file named `SKILL.md` inside your skill folder:
+
+```bash
+# For project-local
+cat > .opencode/skill/my-first-skill/SKILL.md << 'EOF'
+---
+name: my-first-skill
+description: A simple skill that helps format markdown documents.
+---
+
+# Markdown Formatter
+
+## When to use this skill
+
+Use this skill when the user asks to format, clean up, or improve markdown documents.
+
+## Instructions
+
+1. Read the markdown content provided by the user
+2. Fix any formatting issues:
+   - Ensure consistent heading levels
+   - Add blank lines between sections
+   - Format code blocks with language identifiers
+3. Return the formatted markdown
+
+## Example
+
+Input:
+```
+#Title
+Some text
+##Subtitle
+- item1
+- item2
+```
+
+Output:
+```markdown
+# Title
+
+Some text
+
+## Subtitle
+
+- item1
+- item2
+```
+EOF
+```
+
+## Step 3: Verify the structure
+
+Your skill should look like this:
+
+```
+.opencode/skill/my-first-skill/
+└── SKILL.md
+```
+
+Or if using Claude-compatible paths:
+
+```
+.claude/skills/my-first-skill/
+└── SKILL.md
+```
+
+## Step 4: Test your skill
+
+Once the skill is in place, your agent will discover it automatically. You can verify by asking:
+
+```
+User: "What skills do you have?"
+```
+
+Or invoke it directly:
+
+```
+User: "Use the my-first-skill skill to format this markdown..."
+```
+
+## How discovery works
+
+When you run an agent:
+
+1. The agent walks up from your current working directory to the git worktree root
+2. It finds all `SKILL.md` files in supported paths (`.opencode/skill/*/`, `.claude/skills/*/`)
+3. It also checks global paths (`~/.config/opencode/skill/*/`, `~/.claude/skills/*/`)
+4. Skill metadata (name and description) is loaded and made available to the agent
+
+This means skills in parent directories are also discovered, enabling organization-wide skills.
+
+## What's in a SKILL.md?
+
+Every `SKILL.md` has two parts:
+
+### 1. Frontmatter (required)
+
+```yaml
+---
+name: my-first-skill      # Unique identifier (must match folder name)
+description: What this skill does and when to use it
+---
+```
+
+### 2. Instructions (the body)
+
+Write whatever helps the agent perform the task:
+- Step-by-step instructions
+- Examples
+- Edge cases to handle
+
+## Quick reference
+
+| Path | Scope | Use case |
+|------|-------|----------|
+| `.opencode/skill/<name>/` | Project | Project-specific workflows |
+| `.claude/skills/<name>/` | Project | Claude-compatible project skills |
+| `~/.config/opencode/skill/<name>/` | Global | Personal tools you use everywhere |
+| `~/.claude/skills/<name>/` | Global | Claude-compatible global skills |
+
+## Next steps
+
+- **[Core Concepts](/docs/concepts)** - Understand progressive disclosure and skill structure
+- **[Writing SKILL.md](/docs/writing-skill-md)** - Learn all frontmatter options
+- **[Best Practices](/docs/best-practices)** - Tips for effective skills
