@@ -9,6 +9,7 @@ import { DocsNavigation } from "@/components/DocsNavigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import { useMDXComponents } from "../../../../../mdx-components";
 import rehypePrettyCode from "rehype-pretty-code";
+import remarkGfm from "remark-gfm";
 import type { Options as PrettyCodeOptions } from "rehype-pretty-code";
 
 // rehype-pretty-code 配置
@@ -140,6 +141,7 @@ export default async function DocsPage({
                     components={components}
                     options={{
                       mdxOptions: {
+                        remarkPlugins: [remarkGfm],
                         rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
                       },
                     }}
