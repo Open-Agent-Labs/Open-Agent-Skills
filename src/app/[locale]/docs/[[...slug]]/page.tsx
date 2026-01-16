@@ -74,7 +74,7 @@ export default async function DocsPage({
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950">
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800">
-        <nav className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link
               href={homePath}
@@ -109,7 +109,7 @@ export default async function DocsPage({
         </nav>
       </header>
 
-      <div className="pt-24 pb-20 max-w-7xl mx-auto px-6">
+      <div className="pt-24 pb-20 max-w-6xl mx-auto px-6">
         <div className="flex gap-12">
           <DocsSidebar
             groups={groups}
@@ -174,6 +174,12 @@ export default async function DocsPage({
           </main>
         </div>
       </div>
+
+      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-8">
+        <div className="max-w-6xl mx-auto px-6 text-center text-zinc-500 dark:text-zinc-500">
+          © {new Date().getFullYear()} Open Agent Skills. All rights reserved.
+        </div>
+      </footer>
     </div>
   );
 }
