@@ -14,7 +14,7 @@ interface DetailTabsProps {
 const tabs = [
   { id: 'overview', label: 'Overview', labelZh: '概览' },
   { id: 'files', label: 'Files', labelZh: '文件' },
-  { id: 'quickstart', label: 'Quick Start', labelZh: '快速开始' },
+  { id: 'quickstart', label: 'Quick Start', labelZh: '快速安装' },
 ] as const;
 
 type TabId = typeof tabs[number]['id'];

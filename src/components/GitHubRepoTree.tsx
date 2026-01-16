@@ -177,7 +177,7 @@ export function GitHubRepoTree({ repositoryUrl, locale }: GitHubRepoTreeProps) {
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
-      <div className="grid md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-zinc-200 dark:divide-zinc-700">
+      <div className="grid md:grid-cols-[220px_1fr] divide-y md:divide-y-0 md:divide-x divide-zinc-200 dark:divide-zinc-700">
         <div className="p-2 max-h-[400px] overflow-auto">
           {rootItems.length === 0 ? (
             <div className="p-4 text-center text-zinc-500 dark:text-zinc-400 text-sm">
