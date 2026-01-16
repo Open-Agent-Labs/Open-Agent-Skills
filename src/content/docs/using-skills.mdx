@@ -51,7 +51,7 @@ mkdir -p .opencode/skill/pdf-processor
 
 Organize your skills in a dedicated folder:
 
-```
+```text
 .opencode/skill/
 ├── pdf-processor/
 │   └── SKILL.md
@@ -209,7 +209,7 @@ When disabled, the `<available_skills>` section is omitted entirely.
 
 Most agents automatically detect when a skill is relevant:
 
-```
+```text
 User: "I need to extract text from report.pdf"
 
 Agent: (Detects pdf-processor skill is relevant)
@@ -222,7 +222,7 @@ Agent: (Detects pdf-processor skill is relevant)
 
 You can explicitly request a skill:
 
-```
+```text
 User: "Use the pdf-processor skill to extract text from report.pdf"
 ```
 
@@ -230,7 +230,7 @@ User: "Use the pdf-processor skill to extract text from report.pdf"
 
 Ask your agent what skills are available:
 
-```
+```text
 User: "What skills do you have access to?"
 
 Agent: "I have access to the following skills:
@@ -271,7 +271,7 @@ If a skill doesn't appear in the available list:
 
 ### Skill not activating
 
-```
+```text
 Problem: Agent doesn't use the skill when expected
 
 Solutions:
@@ -282,7 +282,7 @@ Solutions:
 
 ### Script errors
 
-```
+```text
 Problem: Skill scripts fail to run
 
 Solutions:

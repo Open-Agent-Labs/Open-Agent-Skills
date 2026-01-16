@@ -15,14 +15,14 @@ Skills can be placed in project-local or global directories. Agents search these
 
 ### Project-local (per repository)
 
-```
+```text
 .opencode/skill/<skill-name>/SKILL.md    # OpenCode native
 .claude/skills/<skill-name>/SKILL.md     # Claude-compatible
 ```
 
 ### Global (user-wide)
 
-```
+```text
 ~/.config/opencode/skill/<skill-name>/SKILL.md   # OpenCode native
 ~/.claude/skills/<skill-name>/SKILL.md           # Claude-compatible
 ```
@@ -45,7 +45,7 @@ mkdir -p ~/.config/opencode/skill/my-first-skill
 
 Create a file named `SKILL.md` inside your skill folder:
 
-```bash
+````bash
 # For project-local
 cat > .opencode/skill/my-first-skill/SKILL.md << 'EOF'
 ---
@@ -71,7 +71,7 @@ Use this skill when the user asks to format, clean up, or improve markdown docum
 ## Example
 
 Input:
-```
+```text
 #Title
 Some text
 ##Subtitle
@@ -91,20 +91,20 @@ Some text
 - item2
 ```
 EOF
-```
+````
 
 ## Step 3: Verify the structure
 
 Your skill should look like this:
 
-```
+```text
 .opencode/skill/my-first-skill/
 └── SKILL.md
 ```
 
 Or if using Claude-compatible paths:
 
-```
+```text
 .claude/skills/my-first-skill/
 └── SKILL.md
 ```
@@ -113,13 +113,13 @@ Or if using Claude-compatible paths:
 
 Once the skill is in place, your agent will discover it automatically. You can verify by asking:
 
-```
+```text
 User: "What skills do you have?"
 ```
 
 Or invoke it directly:
 
-```
+```text
 User: "Use the my-first-skill skill to format this markdown..."
 ```
 

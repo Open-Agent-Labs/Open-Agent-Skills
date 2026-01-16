@@ -15,14 +15,14 @@ Skill 可以放在项目本地目录或全局目录中。Agent 会搜索以下�
 
 ### 项目本地（每个仓库）
 
-```
+```text
 .opencode/skill/<skill-name>/SKILL.md    # OpenCode 原生格式
 .claude/skills/<skill-name>/SKILL.md     # Claude 兼容格式
 ```
 
 ### 全局（用户级别）
 
-```
+```text
 ~/.config/opencode/skill/<skill-name>/SKILL.md   # OpenCode 原生格式
 ~/.claude/skills/<skill-name>/SKILL.md           # Claude 兼容格式
 ```
@@ -45,7 +45,7 @@ mkdir -p ~/.config/opencode/skill/my-first-skill
 
 在 skill 文件夹中创建名为 `SKILL.md` 的文件：
 
-```bash
+````bash
 # 项目本地示例
 cat > .opencode/skill/my-first-skill/SKILL.md << 'EOF'
 ---
@@ -71,7 +71,7 @@ description: 一个帮助格式化 Markdown 文档的简单 skill。
 ## 示例
 
 输入：
-```
+```text
 #标题
 一些文本
 ##副标题
@@ -91,20 +91,20 @@ description: 一个帮助格式化 Markdown 文档的简单 skill。
 - 项目2
 ```
 EOF
-```
+````
 
 ## 第三步：验证结构
 
 你的 skill 应该是这样的结构：
 
-```
+```text
 .opencode/skill/my-first-skill/
 └── SKILL.md
 ```
 
 或者如果使用 Claude 兼容路径：
 
-```
+```text
 .claude/skills/my-first-skill/
 └── SKILL.md
 ```
@@ -113,13 +113,13 @@ EOF
 
 Skill 就位后，你的 Agent 会自动发现它。你可以这样验证：
 
-```
+```text
 用户："你有哪些 skill？"
 ```
 
 或者直接调用：
 
-```
+```text
 用户："使用 my-first-skill 来格式化这个 markdown..."
 ```
 
