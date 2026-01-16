@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { SkillCard } from "@/components/SkillCard";
+import { getFeaturedSkills, skills } from "@/data/skills";
 
 export default async function HomePage({
   params,
@@ -14,6 +17,9 @@ export default async function HomePage({
 
   const docsPath = locale === "en" ? "/docs/introduction" : `/${locale}/docs/introduction`;
   const homePath = locale === "en" ? "/" : `/${locale}`;
+  const skillsPath = locale === "en" ? "/skills" : `/${locale}/skills`;
+
+  const featuredSkills = getFeaturedSkills().slice(0, 6);
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
@@ -34,6 +40,12 @@ export default async function HomePage({
                 {nav("home")}
               </Link>
               <Link
+                href={skillsPath}
+                className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
+              >
+                Skills
+              </Link>
+              <Link
                 href={docsPath}
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
@@ -49,7 +61,10 @@ export default async function HomePage({
               </Link>
             </div>
           </div>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
         </nav>
       </header>
 
@@ -63,23 +78,57 @@ export default async function HomePage({
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href={docsPath}
+              href={skillsPath}
               className="px-8 py-3 bg-zinc-900 text-white rounded-full font-medium hover:bg-zinc-800 transition-colors dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
             >
-              {t("getStarted")}
+              {locale === "zh" ? "浏览 Skills" : "Browse Skills"}
             </Link>
             <Link
-              href="https://github.com/agentskills/agentskills"
-              target="_blank"
-              rel="noopener noreferrer"
+              href={docsPath}
               className="px-8 py-3 border border-zinc-300 rounded-full font-medium text-zinc-700 hover:bg-zinc-50 transition-colors dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
             >
-              GitHub
+              {t("getStarted")}
             </Link>
           </div>
         </section>
 
-        <section className="max-w-6xl mx-auto px-6 mt-24">
+        <section className="max-w-6xl mx-auto px-6 mt-20">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white">
+                {locale === "zh" ? "精选 Skills" : "Featured Skills"}
+              </h2>
+              <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+                {locale === "zh" 
+                  ? `探索 ${skills.length}+ 个 Agent Skills`
+                  : `Discover ${skills.length}+ Agent Skills`}
+              </p>
+            </div>
+            <Link
+              href={skillsPath}
+              className="hidden sm:inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            >
+              {locale === "zh" ? "查看全部" : "View All"}
+              <span>→</span>
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {featuredSkills.map((skill) => (
+              <SkillCard key={skill.id} skill={skill} locale={locale} />
+            ))}
+          </div>
+          <div className="mt-6 text-center sm:hidden">
+            <Link
+              href={skillsPath}
+              className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-medium"
+            >
+              {locale === "zh" ? "查看全部 Skills" : "View All Skills"}
+              <span>→</span>
+            </Link>
+          </div>
+        </section>
+
+        <section className="max-w-6xl mx-auto px-6 mt-20">
           <div className="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-8 md:p-12 border border-zinc-200 dark:border-zinc-800">
             <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white mb-4">
               {t("whyTitle")}
@@ -140,7 +189,7 @@ export default async function HomePage({
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <GetStartedCard
-              href={locale === "en" ? "/docs/what-are-skills" : `/${locale}/docs/what-are-skills`}
+              href={locale === "en" ? "/docs/introduction" : `/${locale}/docs/introduction`}
               title={locale === "zh" ? "什么是 skills？" : "What are skills?"}
               description={locale === "zh" ? "了解 skills、它们如何工作以及为什么重要。" : "Learn about skills, how they work, and why they matter."}
             />
@@ -150,7 +199,7 @@ export default async function HomePage({
               description={locale === "zh" ? "SKILL.md 文件的完整格式规范。" : "The complete format specification for SKILL.md files."}
             />
             <GetStartedCard
-              href={locale === "en" ? "/docs/integrate-skills" : `/${locale}/docs/integrate-skills`}
+              href={locale === "en" ? "/docs/integrating" : `/${locale}/docs/integrating`}
               title={locale === "zh" ? "集成 skills" : "Integrate skills"}
               description={locale === "zh" ? "为您的 Agent 或工具添加 skills 支持。" : "Add skills support to your agent or tool."}
             />

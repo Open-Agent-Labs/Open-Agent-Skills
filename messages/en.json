@@ -5,6 +5,7 @@
   },
   "nav": {
     "home": "Home",
+    "skills": "Skills",
     "docs": "Docs",
     "blog": "Blog"
   },
@@ -13,6 +14,10 @@
     "subtitle": "A simple, open format for giving agents new capabilities and expertise",
     "getStarted": "Get Started",
     "viewDocs": "View Documentation",
+    "browseSkills": "Browse Skills",
+    "featuredSkills": "Featured Skills",
+    "viewAll": "View All",
+    "discoverSkills": "Discover {count}+ Agent Skills",
     "features": {
       "title": "What can Agent Skills enable?",
       "expertise": {
@@ -34,6 +39,21 @@
     },
     "whyTitle": "Why Agent Skills?",
     "whyDescription": "Agents are increasingly capable, but often don't have the context they need to do real work reliably. Skills solve this by giving agents access to procedural knowledge they can load on demand."
+  },
+  "skills": {
+    "title": "Discover Agent Skills",
+    "subtitle": "Browse {count}+ skills to enhance your AI agent",
+    "search": "Search skills...",
+    "all": "All",
+    "featured": "Featured",
+    "noResults": "No skills found matching your criteria",
+    "clearFilters": "Clear filters",
+    "backToSkills": "← Back to Skills",
+    "category": "Category",
+    "author": "Author",
+    "tags": "Tags",
+    "viewOnGitHub": "View on GitHub",
+    "relatedSkills": "Related Skills"
   },
   "docs": {
     "title": "Documentation",

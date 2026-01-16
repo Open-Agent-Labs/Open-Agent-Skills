@@ -5,6 +5,7 @@
   },
   "nav": {
     "home": "首页",
+    "skills": "Skills",
     "docs": "文档",
     "blog": "博客"
   },
@@ -13,6 +14,10 @@
     "subtitle": "一个简单、开放的格式，为 AI Agent 提供新能力和专业知识",
     "getStarted": "开始使用",
     "viewDocs": "查看文档",
+    "browseSkills": "浏览 Skills",
+    "featuredSkills": "精选 Skills",
+    "viewAll": "查看全部",
+    "discoverSkills": "探索 {count}+ Agent Skills",
     "features": {
       "title": "Agent Skills 能实现什么？",
       "expertise": {
@@ -34,6 +39,21 @@
     },
     "whyTitle": "为什么需要 Agent Skills？",
     "whyDescription": "Agent 的能力越来越强，但往往缺乏可靠完成实际工作所需的上下文。Skills 通过让 Agent 按需加载程序性知识来解决这个问题。"
+  },
+  "skills": {
+    "title": "发现 Agent Skills",
+    "subtitle": "浏览 {count}+ 个技能，增强你的 AI Agent",
+    "search": "搜索 skills...",
+    "all": "全部",
+    "featured": "精选",
+    "noResults": "没有找到匹配的 skills",
+    "clearFilters": "清除筛选",
+    "backToSkills": "← 返回列表",
+    "category": "分类",
+    "author": "作者",
+    "tags": "标签",
+    "viewOnGitHub": "在 GitHub 上查看",
+    "relatedSkills": "相关 Skills"
   },
   "docs": {
     "title": "文档",
