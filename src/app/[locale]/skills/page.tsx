@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useParams } from "next/navigation";
 import { skills, getFeaturedSkills, type Category } from "@/data/skills";
 import { SkillCard } from "@/components/SkillCard";
@@ -39,10 +39,6 @@ export default function SkillsPage() {
     return result;
   }, [activeCategory, searchQuery]);
 
-  const homePath = locale === "en" ? "/" : `/${locale}`;
-  const docsPath = locale === "en" ? "/docs/introduction" : `/${locale}/docs/introduction`;
-  const skillsPath = locale === "en" ? "/skills" : `/${locale}/skills`;
-
   const title = locale === "zh" ? "发现 Agent Skills" : "Discover Agent Skills";
   const subtitle =
     locale === "zh"
@@ -58,26 +54,26 @@ export default function SkillsPage() {
         <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link
-              href={homePath}
+              href="/"
               className="font-bold text-xl text-zinc-900 dark:text-white"
             >
               Open Agent Skills
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link
-                href={homePath}
+                href="/"
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
                 {locale === "zh" ? "首页" : "Home"}
               </Link>
               <Link
-                href={skillsPath}
+                href="/skills"
                 className="text-zinc-900 dark:text-white font-medium"
               >
                 Skills
               </Link>
               <Link
-                href={docsPath}
+                href="/docs/introduction"
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
                 {locale === "zh" ? "文档" : "Docs"}

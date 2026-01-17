@@ -1,6 +1,6 @@
 "use client";
 
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import type { Skill } from "@/data/skills";
 import { getCategoryById } from "@/data/categories";
 
@@ -9,13 +9,12 @@ interface SkillCardProps {
   locale: string;
 }
 
-export function SkillCard({ skill, locale }: SkillCardProps) {
+export function SkillCard({ skill }: SkillCardProps) {
   const category = getCategoryById(skill.category);
-  const skillPath = locale === "en" ? `/skills/${skill.id}` : `/${locale}/skills/${skill.id}`;
 
   return (
     <Link
-      href={skillPath}
+      href={`/skills/${skill.id}`}
       className="group block p-5 rounded-xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all duration-200 hover:shadow-lg hover:-translate-y-0.5"
     >
       <div className="flex items-start gap-4">

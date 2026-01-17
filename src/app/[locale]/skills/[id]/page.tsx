@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { skills, getSkillById, getRelatedSkills } from "@/data/skills";
@@ -29,10 +29,6 @@ export default async function SkillDetailPage({
   const category = getCategoryById(skill.category);
   const relatedSkills = getRelatedSkills(skill.id, 3);
 
-  const homePath = locale === "en" ? "/" : `/${locale}`;
-  const docsPath = locale === "en" ? "/docs/introduction" : `/${locale}/docs/introduction`;
-  const skillsPath = locale === "en" ? "/skills" : `/${locale}/skills`;
-
   const isZh = locale === "zh";
 
   const installCommand = `git clone ${skill.repository}`;
@@ -48,26 +44,26 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
         <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link
-              href={homePath}
+              href="/"
               className="font-bold text-xl text-zinc-900 dark:text-white"
             >
               Open Agent Skills
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link
-                href={homePath}
+                href="/"
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
                 {isZh ? "首页" : "Home"}
               </Link>
               <Link
-                href={skillsPath}
+                href="/skills"
                 className="text-zinc-900 dark:text-white font-medium"
               >
                 Skills
               </Link>
               <Link
-                href={docsPath}
+                href="/docs/introduction"
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
                 {isZh ? "文档" : "Docs"}
@@ -92,11 +88,11 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
       <main className="pt-24 pb-20">
         <div className="max-w-6xl mx-auto px-6">
           <nav className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400 mb-8">
-            <Link href={homePath} className="hover:text-zinc-900 dark:hover:text-white transition-colors">
+            <Link href="/" className="hover:text-zinc-900 dark:hover:text-white transition-colors">
               {isZh ? "首页" : "Home"}
             </Link>
             <span>/</span>
-            <Link href={skillsPath} className="hover:text-zinc-900 dark:hover:text-white transition-colors">
+            <Link href="/skills" className="hover:text-zinc-900 dark:hover:text-white transition-colors">
               Skills
             </Link>
             <span>/</span>
@@ -154,10 +150,11 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
             </div>
 
             <div className="flex flex-wrap items-center gap-3 mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-800">
-              <Link
-                href={`${skillsPath}?category=${skill.category}`}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-              >
+                <Link
+                  href={`/skills?category=${skill.category}`}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                >
+
                 <span>{category?.icon}</span>
                 <span>{isZh ? category?.nameZh : category?.name}</span>
               </Link>
@@ -241,7 +238,7 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
                   {isZh ? "相关 Skills" : "Related Skills"}
                 </h2>
                 <Link
-                  href={`${skillsPath}?category=${skill.category}`}
+                  href={`/skills?category=${skill.category}`}
                   className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
                 >
                   {isZh ? "查看更多" : "View more"} →

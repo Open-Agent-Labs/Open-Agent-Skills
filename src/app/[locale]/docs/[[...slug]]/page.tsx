@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { getContentBySlug, getDocsGrouped, getAllDocsMetadata } from "@/lib/mdx";
@@ -61,9 +61,6 @@ export default async function DocsPage({
     notFound();
   }
 
-  const homePath = locale === "en" ? "/" : `/${locale}`;
-  const docsPath = locale === "en" ? "/docs" : `/${locale}/docs`;
-
   const components = useMDXComponents({});
 
   const navLabels = {
@@ -78,20 +75,20 @@ export default async function DocsPage({
         <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <Link
-              href={homePath}
+              href="/"
               className="font-bold text-xl text-zinc-900 dark:text-white"
             >
               Open Agent Skills
             </Link>
             <div className="hidden md:flex items-center gap-6">
               <Link
-                href={homePath}
+                href="/"
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
                 {navLabels.home}
               </Link>
               <Link
-                href={`${docsPath}/introduction`}
+                href="/docs/introduction"
                 className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors"
               >
                 {navLabels.docs}
@@ -130,7 +127,7 @@ export default async function DocsPage({
 
             <div className="mb-6">
               <Link
-                href={homePath}
+                href="/"
                 className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 text-sm"
               >
                 ← {navLabels.backToHome}
@@ -167,7 +164,7 @@ export default async function DocsPage({
                 </p>
                 <div className="flex flex-col gap-2 items-center">
                   <Link
-                    href={`${docsPath}/introduction`}
+                    href="/docs/introduction"
                     className="text-blue-600 hover:underline dark:text-blue-400"
                   >
                     {locale === "zh" ? "简介" : "Introduction"}

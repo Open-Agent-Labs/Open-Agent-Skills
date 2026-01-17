@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 
 interface DocItem {
   slug: string;
@@ -13,8 +13,6 @@ interface DocsNavigationProps {
 }
 
 export function DocsNavigation({ docs, currentSlug, locale }: DocsNavigationProps) {
-  const docsBasePath = locale === "en" ? "/docs" : `/${locale}/docs`;
-
   const sortedDocs = [...docs].sort((a, b) => {
     if (a.order !== undefined && b.order !== undefined) {
       return a.order - b.order;
@@ -36,7 +34,7 @@ export function DocsNavigation({ docs, currentSlug, locale }: DocsNavigationProp
     <nav className="mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800 flex justify-between items-center">
       {prevDoc ? (
         <Link
-          href={`${docsBasePath}/${prevDoc.slug}`}
+          href={`/docs/${prevDoc.slug}`}
           className="group flex flex-col items-start"
         >
           <span className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">
@@ -65,7 +63,7 @@ export function DocsNavigation({ docs, currentSlug, locale }: DocsNavigationProp
 
       {nextDoc ? (
         <Link
-          href={`${docsBasePath}/${nextDoc.slug}`}
+          href={`/docs/${nextDoc.slug}`}
           className="group flex flex-col items-end"
         >
           <span className="text-sm text-zinc-500 dark:text-zinc-400 mb-1">

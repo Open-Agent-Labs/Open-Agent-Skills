@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 
 interface DocItem {
   slug: string;
@@ -22,9 +21,8 @@ interface DocsSidebarProps {
   currentSlug?: string;
 }
 
-export function DocsSidebar({ groups, locale, currentSlug }: DocsSidebarProps) {
+export function DocsSidebar({ groups, currentSlug }: DocsSidebarProps) {
   const pathname = usePathname();
-  const docsBasePath = locale === "en" ? "/docs" : `/${locale}/docs`;
 
   return (
     <aside className="w-64 shrink-0 hidden lg:block">
@@ -36,7 +34,7 @@ export function DocsSidebar({ groups, locale, currentSlug }: DocsSidebarProps) {
             </h3>
             <ul className="space-y-1">
               {group.docs.map((doc) => {
-                const href = `${docsBasePath}/${doc.slug}`;
+                const href = `/docs/${doc.slug}`;
                 const isActive = currentSlug === doc.slug || pathname === href;
 
                 return (
@@ -69,9 +67,7 @@ interface MobileDocsSidebarProps {
 }
 
 export function MobileDocsSidebar({ groups, locale, currentSlug }: MobileDocsSidebarProps) {
-  const docsBasePath = locale === "en" ? "/docs" : `/${locale}/docs`;
-
-  const allDocs = groups.flatMap((g) => g.docs);
+  const router = useRouter();
 
   return (
     <div className="lg:hidden mb-8">
@@ -80,7 +76,7 @@ export function MobileDocsSidebar({ groups, locale, currentSlug }: MobileDocsSid
         value={currentSlug || ""}
         onChange={(e) => {
           if (e.target.value) {
-            window.location.href = `${docsBasePath}/${e.target.value}`;
+            router.push(`/docs/${e.target.value}`);
           }
         }}
       >
