@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Open Agent Skills",
-    "description": "A simple, open format for giving agents new capabilities and expertise"
+    "description": "Open Agent Skills — an open format for AI agent skills and workflows"
   },
   "nav": {
     "home": "Home",
@@ -10,9 +10,9 @@
     "blog": "Blog"
   },
   "home": {
-    "title": "Agent Skills",
-    "subtitle": "A simple, open format for giving agents new capabilities and expertise",
-    "getStarted": "Get Started",
+    "title": "Open Agent Skills",
+    "subtitle": "Open Agent Skills — an open format for AI agent skills and workflows",
+    "getStarted": "Browse Skills Guide",
     "viewDocs": "View Documentation",
     "browseSkills": "Browse Skills",
     "featuredSkills": "Featured Skills",

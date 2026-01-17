@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Open Agent Skills",
-    "description": "一个简单、开放的格式，为 AI Agent 提供新能力和专业知识"
+    "description": "Open Agent Skills —— 一个开放的 AI Agent 技能与工作流格式"
   },
   "nav": {
     "home": "首页",
@@ -10,9 +10,9 @@
     "blog": "博客"
   },
   "home": {
-    "title": "Agent Skills",
-    "subtitle": "一个简单、开放的格式，为 AI Agent 提供新能力和专业知识",
-    "getStarted": "开始使用",
+    "title": "Open Agent Skills",
+    "subtitle": "Open Agent Skills —— 一个开放的 AI Agent 技能与工作流格式",
+    "getStarted": "浏览 Skills 指南",
     "viewDocs": "查看文档",
     "browseSkills": "浏览 Skills",
     "featuredSkills": "精选 Skills",
