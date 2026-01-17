@@ -12,16 +12,56 @@ export function ThemeToggle() {
     setIsDark(isDarkMode);
   }, []);
 
-  const toggleTheme = () => {
-    const newIsDark = !isDark;
-    setIsDark(newIsDark);
-    
-    if (newIsDark) {
+  const updateTheme = (dark: boolean) => {
+    setIsDark(dark);
+    if (dark) {
       document.documentElement.classList.add("dark");
       localStorage.setItem("theme", "dark");
     } else {
       document.documentElement.classList.remove("dark");
       localStorage.setItem("theme", "light");
+    }
+  };
+
+  const toggleTheme = async (event: React.MouseEvent<HTMLButtonElement>) => {
+    const newIsDark = !isDark;
+
+    const x = event.clientX;
+    const y = event.clientY;
+    const endRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    const supportsViewTransitions =
+      typeof document !== "undefined" &&
+      "startViewTransition" in document &&
+      typeof document.startViewTransition === "function";
+
+    if (supportsViewTransitions) {
+      const transition = document.startViewTransition!(() => {
+        updateTheme(newIsDark);
+      });
+
+      try {
+        await transition.ready;
+
+        document.documentElement.animate(
+          {
+            clipPath: [
+              `circle(0px at ${x}px ${y}px)`,
+              `circle(${endRadius}px at ${x}px ${y}px)`,
+            ],
+          },
+          {
+            duration: 500,
+            easing: "ease-out",
+            pseudoElement: "::view-transition-new(root)",
+          }
+        );
+      } catch {}
+    } else {
+      updateTheme(newIsDark);
     }
   };
 

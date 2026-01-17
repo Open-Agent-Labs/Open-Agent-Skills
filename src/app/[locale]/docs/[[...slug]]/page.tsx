@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { getContentBySlug, getDocsGrouped, getAllDocsMetadata } from "@/lib/mdx";
 import { routing, type Locale } from "@/i18n/routing";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
 import { DocsSidebar, MobileDocsSidebar } from "@/components/DocsSidebar";
 import { DocsNavigation } from "@/components/DocsNavigation";
 import { MDXRemote } from "next-mdx-remote/rsc";
@@ -105,7 +106,10 @@ export default async function DocsPage({
               </Link>
             </div>
           </div>
-          <LanguageSwitcher />
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            <LanguageSwitcher />
+          </div>
         </nav>
       </header>
 
