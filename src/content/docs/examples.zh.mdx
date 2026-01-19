@@ -38,7 +38,7 @@ pdf-processor/
 
 ### SKILL.md
 
-```markdown
+~~~markdown
 ---
 name: pdf-processor
 description: 从 PDF 文件提取文本和表格，合并多个 PDF。在处理 PDF 文档时使用。
@@ -60,30 +60,30 @@ metadata:
 
 从 PDF 提取文本：
 
-\`\`\`bash
+```bash
 python scripts/extract_text.py <input.pdf>
-\`\`\`
+```
 
 ## 表格提取
 
 将表格提取为 CSV：
 
-\`\`\`bash
+```bash
 python scripts/extract_tables.py <input.pdf> --output tables/
-\`\`\`
+```
 
 ## 合并 PDF
 
 合并多个 PDF：
 
-\`\`\`bash
+```bash
 python scripts/merge_pdfs.py file1.pdf file2.pdf -o merged.pdf
-\`\`\`
+```
 
 ## 支持的格式
 
 支持的 PDF 版本请参阅 [references/FORMATS.md](references/FORMATS.md)。
-```
+~~~
 
 ## 示例：Git 提交助手
 
@@ -96,7 +96,7 @@ git-commit-helper/
 
 ### SKILL.md
 
-```markdown
+~~~markdown
 ---
 name: git-commit-helper
 description: 帮助编写遵循 conventional commits 格式的更好的 git 提交消息。
@@ -110,13 +110,13 @@ description: 帮助编写遵循 conventional commits 格式的更好的 git 提�
 
 ## 提交格式
 
-\`\`\`
+```
 <type>(<scope>): <subject>
 
 <body>
 
 <footer>
-\`\`\`
+```
 
 ## 类型
 
@@ -133,28 +133,28 @@ description: 帮助编写遵循 conventional commits 格式的更好的 git 提�
 ## 示例
 
 ### 功能
-\`\`\`
+```
 feat(auth): 添加密码重置功能
 
 用户现在可以通过电子邮件重置密码。
 Closes #123
-\`\`\`
+```
 
 ### Bug 修复
-\`\`\`
+```
 fix(api): 处理服务器的空响应
 
 添加空值检查以防止服务器返回空响应时崩溃。
-\`\`\`
+```
 
 ### 破坏性更改
-\`\`\`
+```
 feat(api)!: 更改响应格式
 
 BREAKING CHANGE: API 现在返回 JSON:API 格式。
 详情请参阅迁移指南。
-\`\`\`
 ```
+~~~
 
 ## 示例：代码审查器
 
@@ -170,7 +170,7 @@ code-reviewer/
 
 ### SKILL.md
 
-```markdown
+~~~markdown
 ---
 name: code-reviewer
 description: 审查代码的 bug、安全问题和最佳实践。
@@ -213,7 +213,7 @@ compatibility: 最适合 Python 和 JavaScript 代码。
 
 ## 输出格式
 
-\`\`\`markdown
+```markdown
 ## 代码审查：[文件名]
 
 ### 关键问题
@@ -225,8 +225,8 @@ compatibility: 最适合 Python 和 JavaScript 代码。
 
 ### 正面评价
 - [做得好的地方]
-\`\`\`
 ```
+~~~
 
 ## 创建你自己的
 
