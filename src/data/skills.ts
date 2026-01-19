@@ -340,16 +340,6 @@ export const skills: Skill[] = [
     author: "sanjay3290",
     tags: ["postgres", "sql", "database"],
   },
-  {
-    id: "root-cause-tracing",
-    name: "Root Cause Tracing",
-    description: "Use when errors occur deep in execution and you need to trace back to find the original trigger.",
-    descriptionZh: "当错误发生在执行深处时使用，用于回溯找到最初触发点。",
-    category: "data-analysis",
-    repository: "https://github.com/obra/superpowers/tree/main/skills/root-cause-tracing",
-    author: "obra",
-    tags: ["debugging", "analysis", "tracing"],
-  },
 
   // ==================== Business & Marketing ====================
   {
@@ -653,36 +643,6 @@ export const skills: Skill[] = [
   },
 
   // ==================== Security & Systems ====================
-  {
-    id: "computer-forensics",
-    name: "Computer Forensics",
-    description: "Digital forensics analysis and investigation techniques.",
-    descriptionZh: "数字取证分析与调查技术。",
-    category: "security",
-    repository: "https://github.com/mhattingpete/claude-skills-marketplace/tree/main/computer-forensics-skills/skills/computer-forensics",
-    author: "mhattingpete",
-    tags: ["forensics", "security", "investigation"],
-  },
-  {
-    id: "file-deletion",
-    name: "Secure File Deletion",
-    description: "Secure file deletion and data sanitization methods.",
-    descriptionZh: "安全文件删除与数据清理方法。",
-    category: "security",
-    repository: "https://github.com/mhattingpete/claude-skills-marketplace/tree/main/computer-forensics-skills/skills/file-deletion",
-    author: "mhattingpete",
-    tags: ["security", "deletion", "privacy"],
-  },
-  {
-    id: "metadata-extraction",
-    name: "Metadata Extraction",
-    description: "Extract and analyze file metadata for forensic purposes.",
-    descriptionZh: "提取并分析文件元数据用于取证。",
-    category: "security",
-    repository: "https://github.com/mhattingpete/claude-skills-marketplace/tree/main/computer-forensics-skills/skills/metadata-extraction",
-    author: "mhattingpete",
-    tags: ["metadata", "forensics", "analysis"],
-  },
 
 ];
 
