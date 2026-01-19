@@ -10,7 +10,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   for (const locale of routing.locales) {
     const typedLocale = locale as Locale;
-    const basePaths = ["/", "/skills", "/docs"];
+    const basePaths = ["/", "/skills"];
 
     for (const path of basePaths) {
       entries.push({
@@ -22,7 +22,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     const docSlugs = getContentSlugs(typedLocale, "docs");
-    for (const slug of docSlugs) {
+    const normalizedDocSlugs = docSlugs.includes("introduction")
+      ? docSlugs
+      : ["introduction", ...docSlugs];
+
+    for (const slug of normalizedDocSlugs) {
       entries.push({
         url: new URL(
           localizedPath(typedLocale, `/docs/${slug}`),
@@ -30,7 +34,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         ).toString(),
         lastModified: now,
         changeFrequency: "weekly",
-        priority: 0.6,
+        priority: slug === "introduction" ? 0.7 : 0.6,
       });
     }
 

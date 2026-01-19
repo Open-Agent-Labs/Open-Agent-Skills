@@ -63,7 +63,7 @@ export async function generateMetadata({
   const content = await getContentBySlug(typedLocale, "docs", slugPath);
   const metadataT = await getTranslations({ locale, namespace: "metadata" });
   const docsT = await getTranslations({ locale, namespace: "docs" });
-  const path = slug && slug.length > 0 ? `/docs/${slugPath}` : "/docs";
+  const path = `/docs/${slugPath}`;
   const pageTitle = content?.title || docsT("title");
   const title = `${pageTitle} | ${SITE_NAME}`;
   const description = content?.description || metadataT("description");
