@@ -1,9 +1,51 @@
-import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SkillCard } from "@/components/SkillCard";
 import { getFeaturedSkills, skills } from "@/data/skills";
+import type { Locale } from "@/i18n/routing";
+import {
+  buildAlternates,
+  buildUrl,
+  getOpenGraphImages,
+  getOpenGraphLocale,
+  SITE_NAME,
+} from "@/lib/seo";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "metadata" });
+  const title = `${t("title")} — ${t("description")}`;
+  const description = t("description");
+  const typedLocale = locale as Locale;
+
+  return {
+    title,
+    description,
+    alternates: buildAlternates(typedLocale, "/"),
+    openGraph: {
+      title,
+      description,
+      url: buildUrl(typedLocale, "/"),
+      siteName: SITE_NAME,
+      type: "website",
+      locale: getOpenGraphLocale(typedLocale),
+      images: getOpenGraphImages(),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [getOpenGraphImages()[0].url],
+    },
+  };
+}
 
 export default async function HomePage({
   params,
@@ -80,7 +122,7 @@ export default async function HomePage({
               href="/skills"
               className="px-8 py-3 bg-zinc-900 text-white rounded-full font-medium hover:bg-zinc-800 transition-colors dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
             >
-              {locale === "zh" ? "浏览 Skills" : "Browse Skills"}
+              {t("browseSkills")}
             </Link>
             <Link
               href="/docs/introduction"
@@ -97,19 +139,17 @@ export default async function HomePage({
           <div className="flex items-center justify-between mb-8">
             <div>
               <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white">
-                {locale === "zh" ? "精选 Skills" : "Featured Skills"}
+                {t("featuredSkills")}
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-                {locale === "zh" 
-                  ? `探索 ${skills.length}+ 个 Agent Skills`
-                  : `Discover ${skills.length}+ Agent Skills`}
+                {t("discoverSkills", { count: skills.length })}
               </p>
             </div>
             <Link
               href="/skills"
               className="hidden sm:inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-medium"
             >
-              {locale === "zh" ? "查看全部" : "View All"}
+              {t("viewAll")}
               <span>→</span>
             </Link>
           </div>
@@ -123,7 +163,7 @@ export default async function HomePage({
               href="/skills"
               className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-medium"
             >
-              {locale === "zh" ? "查看全部 Skills" : "View All Skills"}
+              {t("viewAllSkills")}
               <span>→</span>
             </Link>
           </div>
@@ -186,23 +226,23 @@ export default async function HomePage({
 
         <section className="max-w-6xl mx-auto px-6 mt-24">
           <h2 className="text-3xl font-bold text-center text-zinc-900 dark:text-white mb-12">
-            {locale === "zh" ? "开始使用" : "Get Started"}
+            {t("getStartedTitle")}
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <GetStartedCard
               href="/docs/introduction"
-              title={locale === "zh" ? "什么是 skills？" : "What are skills?"}
-              description={locale === "zh" ? "了解 skills、它们如何工作以及为什么重要。" : "Learn about skills, how they work, and why they matter."}
+              title={t("getStartedCards.what.title")}
+              description={t("getStartedCards.what.description")}
             />
             <GetStartedCard
               href="/docs/specification"
-              title={locale === "zh" ? "规范" : "Specification"}
-              description={locale === "zh" ? "SKILL.md 文件的完整格式规范。" : "The complete format specification for SKILL.md files."}
+              title={t("getStartedCards.specification.title")}
+              description={t("getStartedCards.specification.description")}
             />
             <GetStartedCard
               href="/docs/integrating"
-              title={locale === "zh" ? "集成 skills" : "Integrate skills"}
-              description={locale === "zh" ? "为您的 Agent 或工具添加 skills 支持。" : "Add skills support to your agent or tool."}
+              title={t("getStartedCards.integrate.title")}
+              description={t("getStartedCards.integrate.description")}
             />
           </div>
         </section>

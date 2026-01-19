@@ -1,16 +1,65 @@
-import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
-import { skills, getSkillById, getRelatedSkills } from "@/data/skills";
-import { getCategoryById } from "@/data/categories";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { SkillCard } from "@/components/SkillCard";
-import { GitHubRepoTree } from "@/components/GitHubRepoTree";
+import { Link } from "@/i18n/navigation";
 import { DetailTabs } from "@/components/DetailTabs";
+import { GitHubRepoTree } from "@/components/GitHubRepoTree";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { SkillCard } from "@/components/SkillCard";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { getCategoryById } from "@/data/categories";
+import { skills, getSkillById, getRelatedSkills } from "@/data/skills";
+import type { Locale } from "@/i18n/routing";
+import {
+  buildAlternates,
+  buildUrl,
+  getOpenGraphImages,
+  getOpenGraphLocale,
+  SITE_NAME,
+} from "@/lib/seo";
 
 export function generateStaticParams() {
   return skills.map((skill) => ({ id: skill.id }));
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; id: string }>;
+}): Promise<Metadata> {
+  const { locale, id } = await params;
+  const typedLocale = locale as Locale;
+  const skill = getSkillById(id);
+
+  if (!skill) {
+    return {};
+  }
+
+  const description =
+    typedLocale === "zh" ? skill.descriptionZh || skill.description : skill.description;
+  const title = `${skill.name} | ${SITE_NAME}`;
+  const path = `/skills/${skill.id}`;
+
+  return {
+    title,
+    description,
+    alternates: buildAlternates(typedLocale, path),
+    openGraph: {
+      title,
+      description,
+      url: buildUrl(typedLocale, path),
+      siteName: SITE_NAME,
+      type: "article",
+      locale: getOpenGraphLocale(typedLocale),
+      images: getOpenGraphImages(),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [getOpenGraphImages()[0].url],
+    },
+  };
 }
 
 export default async function SkillDetailPage({
@@ -29,6 +78,25 @@ export default async function SkillDetailPage({
   const category = getCategoryById(skill.category);
   const relatedSkills = getRelatedSkills(skill.id, 3);
   const description = locale === "zh" ? skill.descriptionZh || skill.description : skill.description;
+  const skillUrl = buildUrl(locale as Locale, `/skills/${skill.id}`).toString();
+  const skillJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    name: skill.name,
+    description,
+    url: skillUrl,
+    inLanguage: locale,
+    keywords: skill.tags?.join(", "),
+    author: skill.author
+      ? {
+          "@type": "Person",
+          name: skill.author,
+        }
+      : undefined,
+    isBasedOn: skill.repository,
+    about: category ? (locale === "zh" ? category.nameZh : category.name) : undefined,
+    image: getOpenGraphImages()[0].url,
+  };
 
   const isZh = locale === "zh";
 
@@ -41,6 +109,10 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(skillJsonLd) }}
+      />
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800">
         <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">

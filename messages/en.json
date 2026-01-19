@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Open Agent Skills",
-    "description": "Open Agent Skills — an open format for AI agent skills and workflows"
+    "description": "Share and discover reusable Agent Skills to power AI workflows"
   },
   "nav": {
     "home": "Home",
@@ -11,12 +11,28 @@
   },
   "home": {
     "title": "Open Agent Skills",
-    "subtitle": "Open Agent Skills — an open format for AI agent skills and workflows",
+    "subtitle": "Share and discover reusable Agent Skills to power AI workflows",
     "getStarted": "Browse Skills Guide",
+    "getStartedTitle": "Get Started",
+    "getStartedCards": {
+      "what": {
+        "title": "What are skills?",
+        "description": "Learn about skills, how they work, and why they matter."
+      },
+      "specification": {
+        "title": "Specification",
+        "description": "The complete format specification for SKILL.md files."
+      },
+      "integrate": {
+        "title": "Integrate skills",
+        "description": "Add skills support to your agent or tool."
+      }
+    },
     "viewDocs": "View Documentation",
     "browseSkills": "Browse Skills",
     "featuredSkills": "Featured Skills",
     "viewAll": "View All",
+    "viewAllSkills": "View All Skills",
     "discoverSkills": "Discover {count}+ Agent Skills",
     "features": {
       "title": "What can Agent Skills enable?",

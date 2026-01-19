@@ -1,17 +1,25 @@
-import { Link } from "@/i18n/navigation";
+import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { setRequestLocale } from "next-intl/server";
-import { getContentBySlug, getDocsGrouped, getAllDocsMetadata } from "@/lib/mdx";
-import { routing, type Locale } from "@/i18n/routing";
-import { LanguageSwitcher } from "@/components/LanguageSwitcher";
-import { ThemeToggle } from "@/components/ThemeToggle";
-import { DocsSidebar, MobileDocsSidebar } from "@/components/DocsSidebar";
-import { DocsNavigation } from "@/components/DocsNavigation";
+import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MDXRemote } from "next-mdx-remote/rsc";
-import { useMDXComponents } from "../../../../../mdx-components";
 import rehypePrettyCode from "rehype-pretty-code";
 import remarkGfm from "remark-gfm";
 import type { Options as PrettyCodeOptions } from "rehype-pretty-code";
+import { DocsNavigation } from "@/components/DocsNavigation";
+import { DocsSidebar, MobileDocsSidebar } from "@/components/DocsSidebar";
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { Link } from "@/i18n/navigation";
+import { routing, type Locale } from "@/i18n/routing";
+import { getAllDocsMetadata, getContentBySlug, getDocsGrouped } from "@/lib/mdx";
+import {
+  buildAlternates,
+  buildUrl,
+  getOpenGraphImages,
+  getOpenGraphLocale,
+  SITE_NAME,
+} from "@/lib/seo";
+import { useMDXComponents } from "../../../../../mdx-components";
 
 // rehype-pretty-code 配置
 const prettyCodeOptions: PrettyCodeOptions = {
@@ -42,6 +50,44 @@ export function generateStaticParams() {
   }
 
   return paths;
+}
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string; slug?: string[] }>;
+}): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const typedLocale = locale as Locale;
+  const slugPath = slug?.join("/") || "introduction";
+  const content = await getContentBySlug(typedLocale, "docs", slugPath);
+  const metadataT = await getTranslations({ locale, namespace: "metadata" });
+  const docsT = await getTranslations({ locale, namespace: "docs" });
+  const path = slug && slug.length > 0 ? `/docs/${slugPath}` : "/docs";
+  const pageTitle = content?.title || docsT("title");
+  const title = `${pageTitle} | ${SITE_NAME}`;
+  const description = content?.description || metadataT("description");
+
+  return {
+    title,
+    description,
+    alternates: buildAlternates(typedLocale, path),
+    openGraph: {
+      title,
+      description,
+      url: buildUrl(typedLocale, path),
+      siteName: SITE_NAME,
+      type: "article",
+      locale: getOpenGraphLocale(typedLocale),
+      images: getOpenGraphImages(),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [getOpenGraphImages()[0].url],
+    },
+  };
 }
 
 export default async function DocsPage({

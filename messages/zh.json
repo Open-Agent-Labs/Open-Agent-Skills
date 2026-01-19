@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Open Agent Skills",
-    "description": "Open Agent Skills —— 一个开放的 AI Agent 技能与工作流格式"
+    "description": "分享与发现可复用的 Agent Skills，构建更强大的 AI 工作流"
   },
   "nav": {
     "home": "首页",
@@ -11,12 +11,28 @@
   },
   "home": {
     "title": "Open Agent Skills",
-    "subtitle": "Open Agent Skills —— 一个开放的 AI Agent 技能与工作流格式",
+    "subtitle": "分享与发现可复用的 Agent Skills，构建更强大的 AI 工作流",
     "getStarted": "浏览 Skills 指南",
+    "getStartedTitle": "开始使用",
+    "getStartedCards": {
+      "what": {
+        "title": "什么是 skills？",
+        "description": "了解 skills、它们如何工作以及为什么重要。"
+      },
+      "specification": {
+        "title": "规范",
+        "description": "SKILL.md 文件的完整格式规范。"
+      },
+      "integrate": {
+        "title": "集成 skills",
+        "description": "为你的 Agent 或工具添加 skills 支持。"
+      }
+    },
     "viewDocs": "查看文档",
     "browseSkills": "浏览 Skills",
     "featuredSkills": "精选 Skills",
     "viewAll": "查看全部",
+    "viewAllSkills": "查看全部 Skills",
     "discoverSkills": "探索 {count}+ Agent Skills",
     "features": {
       "title": "Agent Skills 能实现什么？",

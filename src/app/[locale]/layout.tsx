@@ -4,6 +4,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Geist, Geist_Mono } from "next/font/google";
 import { routing, type Locale } from "@/i18n/routing";
+import { getOpenGraphImages, SITE_NAME, SITE_URL } from "@/lib/seo";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -32,6 +33,24 @@ export async function generateMetadata({
   return {
     title: metadata.title,
     description: metadata.description,
+    metadataBase: new URL(SITE_URL),
+    openGraph: {
+      title: metadata.title,
+      description: metadata.description,
+      siteName: SITE_NAME,
+      type: "website",
+      images: getOpenGraphImages(),
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: metadata.title,
+      description: metadata.description,
+      images: [getOpenGraphImages()[0].url],
+    },
+    robots: {
+      index: true,
+      follow: true,
+    },
   };
 }
 
