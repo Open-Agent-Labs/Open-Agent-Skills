@@ -39,6 +39,8 @@ export function parseGitHubUrl(url: string): ParsedRepoInfo | null {
       path = parts.slice(2).join("/");
     }
 
+    path = path.replace(/\/+$/, "");
+
     return { owner, repo, path, branch };
   } catch {
     return null;

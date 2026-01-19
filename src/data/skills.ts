@@ -683,16 +683,7 @@ export const skills: Skill[] = [
     author: "mhattingpete",
     tags: ["metadata", "forensics", "analysis"],
   },
-  {
-    id: "threat-hunting",
-    name: "Threat Hunting with Sigma",
-    description: "Use Sigma detection rules to hunt for threats and analyze security events.",
-    descriptionZh: "使用 Sigma 检测规则进行威胁狩猎并分析安全事件。",
-    category: "security",
-    repository: "https://github.com/jthack/threat-hunting-with-sigma-rules-skill",
-    author: "jthack",
-    tags: ["security", "sigma", "threat-hunting"],
-  },
+
 ];
 
 // Helper functions
