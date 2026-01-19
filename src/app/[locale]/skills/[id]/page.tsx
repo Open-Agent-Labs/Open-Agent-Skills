@@ -77,6 +77,7 @@ export default async function SkillDetailPage({
   params: Promise<{ locale: string; id: string }>;
 }) {
   const { locale, id } = await params;
+  const typedLocale = locale as Locale;
   setRequestLocale(locale);
 
   const skill = getSkillById(id);
@@ -87,7 +88,7 @@ export default async function SkillDetailPage({
   const category = getCategoryById(skill.category);
   const relatedSkills = getRelatedSkills(skill.id, 3);
   const description = locale === "zh" ? skill.descriptionZh || skill.description : skill.description;
-  const skillUrl = buildUrl(locale as Locale, `/skills/${skill.id}`).toString();
+  const skillUrl = buildUrl(typedLocale, `/skills/${skill.id}`).toString();
   const skillJsonLd = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",
@@ -108,6 +109,30 @@ export default async function SkillDetailPage({
   };
 
   const isZh = locale === "zh";
+  const breadcrumbJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: isZh ? "首页" : "Home",
+        item: buildUrl(typedLocale, "/").toString(),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Skills",
+        item: buildUrl(typedLocale, "/skills").toString(),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: skill.name,
+        item: skillUrl,
+      },
+    ],
+  };
 
   const installCommand = `git clone ${skill.repository}`;
   const fullInstallBlock = `# Clone the skill repository
@@ -121,6 +146,10 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(skillJsonLd) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800">
         <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">

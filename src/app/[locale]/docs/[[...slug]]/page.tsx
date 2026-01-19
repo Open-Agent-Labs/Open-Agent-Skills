@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { MDXRemote } from "next-mdx-remote/rsc";
 import rehypePrettyCode from "rehype-pretty-code";
@@ -19,6 +19,7 @@ import {
   getDocsKeywords,
   getOpenGraphImages,
   getOpenGraphLocale,
+  localizedPath,
   SITE_NAME,
 } from "@/lib/seo";
 import { useMDXComponents } from "../../../../../mdx-components";
@@ -99,12 +100,18 @@ export default async function DocsPage({
   params: Promise<{ locale: string; slug?: string[] }>;
 }) {
   const { locale, slug } = await params;
+  const typedLocale = locale as Locale;
+
+  if (!slug || slug.length === 0) {
+    redirect(localizedPath(typedLocale, "/docs/introduction"));
+  }
+
   setRequestLocale(locale);
 
-  const slugPath = slug?.join("/") || "introduction";
-  const content = await getContentBySlug(locale as Locale, "docs", slugPath);
-  const groups = await getDocsGrouped(locale as Locale);
-  const allDocs = await getAllDocsMetadata(locale as Locale);
+  const slugPath = slug.join("/");
+  const content = await getContentBySlug(typedLocale, "docs", slugPath);
+  const groups = await getDocsGrouped(typedLocale);
+  const allDocs = await getAllDocsMetadata(typedLocale);
 
   if (!content && slug && slug.length > 0) {
     notFound();
@@ -117,9 +124,41 @@ export default async function DocsPage({
     docs: locale === "zh" ? "文档" : "Docs",
     backToHome: locale === "zh" ? "返回首页" : "Back to Home",
   };
+  const breadcrumbJsonLd = content
+    ? {
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: navLabels.home,
+            item: buildUrl(typedLocale, "/").toString(),
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: navLabels.docs,
+            item: buildUrl(typedLocale, "/docs/introduction").toString(),
+          },
+          {
+            "@type": "ListItem",
+            position: 3,
+            name: content.title,
+            item: buildUrl(typedLocale, `/docs/${slugPath}`).toString(),
+          },
+        ],
+      }
+    : null;
 
   return (
     <div className="min-h-screen bg-white dark:bg-zinc-950">
+      {breadcrumbJsonLd ? (
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+        />
+      ) : null}
       <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800">
         <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-8">
