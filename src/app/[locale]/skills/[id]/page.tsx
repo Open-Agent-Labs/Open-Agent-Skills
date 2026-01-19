@@ -4,6 +4,7 @@ import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { DetailTabs } from "@/components/DetailTabs";
 import { GitHubRepoTree } from "@/components/GitHubRepoTree";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkillCard } from "@/components/SkillCard";
 import { getCategoryById } from "@/data/categories";
@@ -87,6 +88,7 @@ export default async function SkillDetailPage({
   const category = getCategoryById(skill.category);
   const relatedSkills = getRelatedSkills(skill.id, 3);
   const description = locale === "zh" ? skill.descriptionZh || skill.description : skill.description;
+  const overviewContent = locale === "zh" ? skill.contentZh || skill.content : skill.content;
   const skillUrl = buildUrl(typedLocale, `/skills/${skill.id}`).toString();
   const skillJsonLd = {
     "@context": "https://schema.org",
@@ -241,42 +243,47 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
             locale={locale}
             children={{
               overview: (
-                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8 space-y-8">
-                  <div>
-                    <h3 className="text-base font-medium text-zinc-900 dark:text-white mb-2 flex items-center gap-2">
-                      <span className="text-blue-500">●</span>
-                      {isZh ? `什么是 ${skill.name}？` : `What is ${skill.name}?`}
-                    </h3>
-                      <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed pl-4">
-                        {description}
-                      </p>
+                <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8">
+                  {overviewContent ? (
+                    <MarkdownRenderer content={overviewContent} />
+                  ) : (
+                    <div className="space-y-8">
+                      <div>
+                        <h3 className="text-base font-medium text-zinc-900 dark:text-white mb-2 flex items-center gap-2">
+                          <span className="text-blue-500">●</span>
+                          {isZh ? `什么是 ${skill.name}？` : `What is ${skill.name}?`}
+                        </h3>
+                        <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed pl-4">
+                          {description}
+                        </p>
+                      </div>
 
-                  </div>
+                      <div>
+                        <h3 className="text-base font-medium text-zinc-900 dark:text-white mb-2 flex items-center gap-2">
+                          <span className="text-green-500">●</span>
+                          {isZh ? "如何使用？" : "How to use?"}
+                        </h3>
+                        <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed pl-4">
+                          {isZh 
+                            ? `访问 GitHub 仓库获取详细的安装和使用说明。将 skill 文件添加到你的 Agent 配置中即可开始使用。`
+                            : `Visit the GitHub repository for detailed installation and usage instructions. Add the skill files to your agent configuration to get started.`
+                          }
+                        </p>
+                      </div>
 
-                  <div>
-                    <h3 className="text-base font-medium text-zinc-900 dark:text-white mb-2 flex items-center gap-2">
-                      <span className="text-green-500">●</span>
-                      {isZh ? "如何使用？" : "How to use?"}
-                    </h3>
-                    <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed pl-4">
-                      {isZh 
-                        ? `访问 GitHub 仓库获取详细的安装和使用说明。将 skill 文件添加到你的 Agent 配置中即可开始使用。`
-                        : `Visit the GitHub repository for detailed installation and usage instructions. Add the skill files to your agent configuration to get started.`
-                      }
-                    </p>
-                  </div>
-
-                  <div>
-                    <h3 className="text-base font-medium text-zinc-900 dark:text-white mb-2 flex items-center gap-2">
-                      <span className="text-purple-500">●</span>
-                      {isZh ? "适用场景" : "Use Cases"}
-                    </h3>
-                    <ul className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed pl-4 space-y-1">
-                      <li>• {isZh ? "增强 AI Agent 的特定领域能力" : "Enhance AI agent capabilities in specific domains"}</li>
-                      <li>• {isZh ? "自动化重复性工作流程" : "Automate repetitive workflows"}</li>
-                      <li>• {isZh ? "与其他 skills 组合使用" : "Combine with other skills for complex tasks"}</li>
-                    </ul>
-                  </div>
+                      <div>
+                        <h3 className="text-base font-medium text-zinc-900 dark:text-white mb-2 flex items-center gap-2">
+                          <span className="text-purple-500">●</span>
+                          {isZh ? "适用场景" : "Use Cases"}
+                        </h3>
+                        <ul className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed pl-4 space-y-1">
+                          <li>• {isZh ? "增强 AI Agent 的特定领域能力" : "Enhance AI agent capabilities in specific domains"}</li>
+                          <li>• {isZh ? "自动化重复性工作流程" : "Automate repetitive workflows"}</li>
+                          <li>• {isZh ? "与其他 skills 组合使用" : "Combine with other skills for complex tasks"}</li>
+                        </ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ),
               files: (
