@@ -9,8 +9,9 @@ interface SkillCardProps {
   locale: string;
 }
 
-export function SkillCard({ skill }: SkillCardProps) {
+export function SkillCard({ skill, locale }: SkillCardProps) {
   const category = getCategoryById(skill.category);
+  const description = locale === "zh" ? skill.descriptionZh || skill.description : skill.description;
 
   return (
     <Link
@@ -38,7 +39,7 @@ export function SkillCard({ skill }: SkillCardProps) {
             )}
           </div>
           <p className="text-sm text-zinc-600 dark:text-zinc-400 line-clamp-2 mb-3">
-            {skill.description}
+            {description}
           </p>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
