@@ -4,7 +4,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Geist, Geist_Mono } from "next/font/google";
 import { routing, type Locale } from "@/i18n/routing";
-import { getOpenGraphImages, SITE_NAME, SITE_URL } from "@/lib/seo";
+import { formatTitle, getBaseKeywords, getOpenGraphImages, SITE_NAME, SITE_URL } from "@/lib/seo";
 import "../globals.css";
 
 const geistSans = Geist({
@@ -31,8 +31,9 @@ export async function generateMetadata({
   const metadata = messages.metadata as { title: string; description: string };
 
   return {
-    title: metadata.title,
+    title: formatTitle(metadata.title),
     description: metadata.description,
+    keywords: getBaseKeywords(locale as Locale),
     metadataBase: new URL(SITE_URL),
     openGraph: {
       title: metadata.title,

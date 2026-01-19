@@ -9,6 +9,8 @@ import type { Locale } from "@/i18n/routing";
 import {
   buildAlternates,
   buildUrl,
+  formatTitle,
+  getHomeKeywords,
   getOpenGraphImages,
   getOpenGraphLocale,
   SITE_NAME,
@@ -21,13 +23,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "metadata" });
-  const title = `${t("title")} — ${t("description")}`;
+  const title = formatTitle(`${t("title")} — ${t("description")}`);
   const description = t("description");
   const typedLocale = locale as Locale;
 
   return {
     title,
     description,
+    keywords: getHomeKeywords(typedLocale),
     alternates: buildAlternates(typedLocale, "/"),
     openGraph: {
       title,

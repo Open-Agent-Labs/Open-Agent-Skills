@@ -15,6 +15,8 @@ import { getAllDocsMetadata, getContentBySlug, getDocsGrouped } from "@/lib/mdx"
 import {
   buildAlternates,
   buildUrl,
+  formatTitle,
+  getDocsKeywords,
   getOpenGraphImages,
   getOpenGraphLocale,
   SITE_NAME,
@@ -65,12 +67,13 @@ export async function generateMetadata({
   const docsT = await getTranslations({ locale, namespace: "docs" });
   const path = `/docs/${slugPath}`;
   const pageTitle = content?.title || docsT("title");
-  const title = `${pageTitle} | ${SITE_NAME}`;
+  const title = formatTitle(`${pageTitle} | ${SITE_NAME}`);
   const description = content?.description || metadataT("description");
 
   return {
     title,
     description,
+    keywords: getDocsKeywords(typedLocale, pageTitle),
     alternates: buildAlternates(typedLocale, path),
     openGraph: {
       title,

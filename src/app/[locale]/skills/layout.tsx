@@ -5,6 +5,8 @@ import { skills } from "@/data/skills";
 import {
   buildAlternates,
   buildUrl,
+  formatTitle,
+  getSkillsKeywords,
   getOpenGraphImages,
   getOpenGraphLocale,
   SITE_NAME,
@@ -18,12 +20,13 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "skills" });
   const typedLocale = locale as Locale;
-  const title = t("title");
+  const title = formatTitle(t("title"));
   const description = t("subtitle", { count: skills.length });
 
   return {
     title,
     description,
+    keywords: getSkillsKeywords(typedLocale),
     alternates: buildAlternates(typedLocale, "/skills"),
     openGraph: {
       title,

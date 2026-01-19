@@ -13,6 +13,8 @@ import type { Locale } from "@/i18n/routing";
 import {
   buildAlternates,
   buildUrl,
+  formatTitle,
+  getSkillKeywords,
   getOpenGraphImages,
   getOpenGraphLocale,
   SITE_NAME,
@@ -35,14 +37,21 @@ export async function generateMetadata({
     return {};
   }
 
+  const category = getCategoryById(skill.category);
   const description =
     typedLocale === "zh" ? skill.descriptionZh || skill.description : skill.description;
-  const title = `${skill.name} | ${SITE_NAME}`;
+  const title = formatTitle(`${skill.name} | ${SITE_NAME}`);
   const path = `/skills/${skill.id}`;
 
   return {
     title,
     description,
+    keywords: getSkillKeywords(typedLocale, {
+      name: skill.name,
+      tags: skill.tags,
+      category: category?.name,
+      categoryZh: category?.nameZh,
+    }),
     alternates: buildAlternates(typedLocale, path),
     openGraph: {
       title,
