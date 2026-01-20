@@ -200,6 +200,38 @@ export default async function HomePage({
             />
           </div>
         </section>
+
+        <section className="max-w-4xl mx-auto px-6 mt-24">
+          <h2 className="text-3xl font-bold text-center text-zinc-900 dark:text-white mb-12">
+            {t("faq.title")}
+          </h2>
+          <div className="space-y-4">
+            {[0, 1, 2, 3, 4].map((i) => (
+              <FAQItem
+                key={i}
+                question={t(`faq.items.${i}.question`)}
+                answer={t(`faq.items.${i}.answer`)}
+              />
+            ))}
+          </div>
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{
+              __html: JSON.stringify({
+                "@context": "https://schema.org",
+                "@type": "FAQPage",
+                mainEntity: [0, 1, 2, 3, 4].map((i) => ({
+                  "@type": "Question",
+                  name: t(`faq.items.${i}.question`),
+                  acceptedAnswer: {
+                    "@type": "Answer",
+                    text: t(`faq.items.${i}.answer`),
+                  },
+                })),
+              }),
+            }}
+          />
+        </section>
       </main>
 
       <footer className="border-t border-zinc-200 dark:border-zinc-800 py-8">
@@ -253,5 +285,34 @@ function GetStartedCard({
       </h3>
       <p className="text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
     </Link>
+  );
+}
+
+function FAQItem({
+  question,
+  answer,
+}: {
+  question: string;
+  answer: string;
+}) {
+  return (
+    <details className="group rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+      <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
+        <h3 className="text-lg font-semibold text-zinc-900 dark:text-white pr-4">
+          {question}
+        </h3>
+        <svg
+          className="w-5 h-5 text-zinc-500 dark:text-zinc-400 transition-transform group-open:rotate-180 flex-shrink-0"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+        </svg>
+      </summary>
+      <div className="px-6 pb-6 text-zinc-600 dark:text-zinc-400 leading-relaxed">
+        {answer}
+      </div>
+    </details>
   );
 }

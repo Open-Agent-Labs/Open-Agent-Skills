@@ -54,7 +54,32 @@
       }
     },
     "whyTitle": "Why Open Agent Skills?",
-    "whyDescription": "Here, you can dive deep into how Agent Skills work and explore a vast collection of practical, powerful skills to supercharge your AI workflows."
+    "whyDescription": "Here, you can dive deep into how Agent Skills work and explore a vast collection of practical, powerful skills to supercharge your AI workflows.",
+    "faq": {
+      "title": "Frequently Asked Questions",
+      "items": [
+        {
+          "question": "What is Open Agent Skills?",
+          "answer": "Open Agent Skills is an open-source platform for discovering and sharing reusable Agent Skills. We curate a collection of 100+ high-quality skills that help AI agents like Claude, GPT, and Cursor complete specific tasks more reliably."
+        },
+        {
+          "question": "What can I find on Open Agent Skills?",
+          "answer": "You can browse skills across multiple categories including Development, Documents, Productivity, Creative, Content, Business, Data, Collaboration, and Security. Each skill comes with detailed documentation, usage examples, and easy integration instructions."
+        },
+        {
+          "question": "How do I use skills from Open Agent Skills?",
+          "answer": "Simply browse our skills catalog, find the skill you need, and download the SKILL.md file. Add it to your project's .cursor/skills or .agent/skills directory, and your AI agent will automatically discover and use it when performing related tasks."
+        },
+        {
+          "question": "Is Open Agent Skills free to use?",
+          "answer": "Yes! Open Agent Skills is completely free and open source. You can browse, download, and use any skill without registration or payment. We believe in making AI productivity tools accessible to everyone."
+        },
+        {
+          "question": "How can I contribute skills to Open Agent Skills?",
+          "answer": "We welcome community contributions! Read our specification documentation to understand the SKILL.md format, create your skill following best practices, and submit it via our GitHub repository. Our team will review and publish approved skills."
+        }
+      ]
+    }
   },
   "skills": {
     "title": "Discover Agent Skills",

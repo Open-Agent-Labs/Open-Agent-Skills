@@ -54,7 +54,32 @@
       }
     },
     "whyTitle": "为什么需要 Open Agent Skills？",
-    "whyDescription": "在这里，你不仅可以深入了解 Agent Skills 的工作原理，还能探索海量实用且功能强大的技能，快速提升你的 AI 工作效率。"
+    "whyDescription": "在这里，你不仅可以深入了解 Agent Skills 的工作原理，还能探索海量实用且功能强大的技能，快速提升你的 AI 工作效率。",
+    "faq": {
+      "title": "常见问题",
+      "items": [
+        {
+          "question": "什么是 Open Agent Skills？",
+          "answer": "Open Agent Skills 是一个开源平台，用于发现和分享可复用的 Agent Skills。我们精选了 100+ 高质量技能，帮助 Claude、GPT、Cursor 等 AI 代理更可靠地完成特定任务。"
+        },
+        {
+          "question": "在 Open Agent Skills 可以找到什么？",
+          "answer": "你可以浏览开发、文档、生产力、创意、内容、商业、数据、协作和安全等多个类别的技能。每个技能都包含详细文档、使用示例和简单的集成说明。"
+        },
+        {
+          "question": "如何使用 Open Agent Skills 的技能？",
+          "answer": "只需浏览我们的技能目录，找到你需要的技能，下载 SKILL.md 文件。将其添加到项目的 .cursor/skills 或 .agent/skills 目录，你的 AI 代理将在执行相关任务时自动发现并使用它。"
+        },
+        {
+          "question": "Open Agent Skills 是免费的吗？",
+          "answer": "是的！Open Agent Skills 完全免费且开源。你可以无需注册或付费即可浏览、下载和使用任何技能。我们致力于让 AI 生产力工具人人可用。"
+        },
+        {
+          "question": "如何向 Open Agent Skills 贡献技能？",
+          "answer": "我们欢迎社区贡献！阅读我们的规范文档了解 SKILL.md 格式，按照最佳实践创建你的技能，然后通过我们的 GitHub 仓库提交。我们的团队将审核并发布通过审核的技能。"
+        }
+      ]
+    }
   },
   "skills": {
     "title": "发现 Agent Skills",
