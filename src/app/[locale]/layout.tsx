@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { GoogleAnalytics } from '@next/third-parties/google';
 import { Geist, Geist_Mono } from "next/font/google";
 import { routing, type Locale } from "@/i18n/routing";
 import { formatTitle, getBaseKeywords, getOpenGraphImages, SITE_NAME, SITE_URL } from "@/lib/seo";
@@ -131,6 +132,7 @@ export default async function LocaleLayout({
         <NextIntlClientProvider messages={messages}>
           {children}
         </NextIntlClientProvider>
+        <GoogleAnalytics gaId="G-4G88LF13BD" />
       </body>
     </html>
   );

@@ -7,14 +7,15 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "build:worker": "npx opennextjs-cloudflare build",
-    "deploy": "npx opennextjs-cloudflare deploy",
-    "preview": "npx opennextjs-cloudflare dev"
+    "build:worker": "opennextjs-cloudflare build",
+    "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
+    "preview": "opennextjs-cloudflare dev"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
     "@mdx-js/react": "^3.1.1",
     "@next/mdx": "^16.1.1",
+    "@next/third-parties": "^16.1.4",
     "next": "16.1.1",
     "next-intl": "^4.7.0",
     "next-mdx-remote": "^5.0.0",
