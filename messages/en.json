@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Open Agent Skills",
-    "description": "Share and discover reusable Agent Skills to power AI workflows"
+    "description": "Open Agent Skills - Discover and share reusable skills for AI agents like Claude, GPT, and LLM automation. Browse 100+ skills to enhance your AI workflows, from code generation to document processing."
   },
   "nav": {
     "home": "Home",
@@ -53,8 +53,8 @@
         "description": "Reuse the same skill across different skills-compatible agent products."
       }
     },
-    "whyTitle": "Why Agent Skills?",
-    "whyDescription": "Agents are increasingly capable, but often don't have the context they need to do real work reliably. Skills solve this by giving agents access to procedural knowledge they can load on demand."
+    "whyTitle": "Why Open Agent Skills?",
+    "whyDescription": "Here, you can dive deep into how Agent Skills work and explore a vast collection of practical, powerful skills to supercharge your AI workflows."
   },
   "skills": {
     "title": "Discover Agent Skills",

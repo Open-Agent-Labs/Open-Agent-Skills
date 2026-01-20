@@ -1,7 +1,7 @@
 {
   "metadata": {
     "title": "Open Agent Skills",
-    "description": "分享与发现可复用的 Agent Skills，构建更强大的 AI 工作流"
+    "description": "Open Agent Skills - 发现和分享可复用的 AI 代理技能。支持 Claude、GPT 等大模型自动化，浏览 100+ 技能增强你的 AI 工作流，涵盖代码生成、文档处理、数据分析等场景。"
   },
   "nav": {
     "home": "首页",
@@ -53,8 +53,8 @@
         "description": "在不同的 skills 兼容 Agent 产品中重用相同的 skill。"
       }
     },
-    "whyTitle": "为什么需要 Agent Skills？",
-    "whyDescription": "Agent 的能力越来越强，但往往缺乏可靠完成实际工作所需的上下文。Skills 通过让 Agent 按需加载程序性知识来解决这个问题。"
+    "whyTitle": "为什么需要 Open Agent Skills？",
+    "whyDescription": "在这里，你不仅可以深入了解 Agent Skills 的工作原理，还能探索海量实用且功能强大的技能，快速提升你的 AI 工作效率。"
   },
   "skills": {
     "title": "发现 Agent Skills",
