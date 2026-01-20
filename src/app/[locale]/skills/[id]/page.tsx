@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { DetailTabs } from "@/components/DetailTabs";
+import { Footer } from "@/components/Footer";
 import { GitHubRepoTree } from "@/components/GitHubRepoTree";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { SiteHeader } from "@/components/SiteHeader";
@@ -100,9 +101,9 @@ export default async function SkillDetailPage({
     keywords: skill.tags?.join(", "),
     author: skill.author
       ? {
-          "@type": "Person",
-          name: skill.author,
-        }
+        "@type": "Person",
+        name: skill.author,
+      }
       : undefined,
     isBasedOn: skill.repository,
     about: category ? (locale === "zh" ? category.nameZh : category.name) : undefined,
@@ -190,16 +191,16 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
                       </span>
                     )}
                   </div>
-                  
+
                   {skill.author && (
                     <span className="text-sm text-zinc-500 dark:text-zinc-400">
                       @{skill.author}
                     </span>
                   )}
 
-                    <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed mt-3 text-sm md:text-base">
-                      {description}
-                    </p>
+                  <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed mt-3 text-sm md:text-base">
+                    {description}
+                  </p>
 
                 </div>
               </div>
@@ -220,10 +221,10 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
             </div>
 
             <div className="flex flex-wrap items-center gap-3 mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-800">
-                <Link
-                  href={`/skills?category=${skill.category}`}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
-                >
+              <Link
+                href={`/skills?category=${skill.category}`}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-zinc-100 dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 rounded-lg text-sm hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+              >
 
                 <span>{category?.icon}</span>
                 <span>{isZh ? category?.nameZh : category?.name}</span>
@@ -264,7 +265,7 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
                           {isZh ? "如何使用？" : "How to use?"}
                         </h3>
                         <p className="text-zinc-600 dark:text-zinc-400 text-sm leading-relaxed pl-4">
-                          {isZh 
+                          {isZh
                             ? `访问 GitHub 仓库获取详细的安装和使用说明。将 skill 文件添加到你的 Agent 配置中即可开始使用。`
                             : `Visit the GitHub repository for detailed installation and usage instructions. Add the skill files to your agent configuration to get started.`
                           }
@@ -291,13 +292,13 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
               ),
               quickstart: (
                 <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-zinc-200 dark:border-zinc-800 p-6 md:p-8">
-                   <div className="bg-zinc-950 rounded-xl p-4 overflow-x-auto">
+                  <div className="bg-zinc-950 rounded-xl p-4 overflow-x-auto">
                     <pre className="text-sm text-zinc-300">
                       <code>{fullInstallBlock}</code>
                     </pre>
                   </div>
                   <p className="mt-4 text-sm text-zinc-500 dark:text-zinc-400">
-                    {isZh 
+                    {isZh
                       ? "更多详细信息请参考 GitHub 仓库中的 README 文件。"
                       : "For more details, please refer to the README file in the GitHub repository."
                     }
@@ -334,11 +335,7 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
         </div>
       </main>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-8">
-        <div className="max-w-6xl mx-auto px-6 text-center text-zinc-500 dark:text-zinc-500">
-          © {new Date().getFullYear()} Open Agent Skills. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

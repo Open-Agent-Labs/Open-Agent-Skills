@@ -1,19 +1,44 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useParams } from "next/navigation";
+import { useState, useMemo, useEffect } from "react";
+import { useParams, useSearchParams } from "next/navigation";
 import { skills, getFeaturedSkills, type Category } from "@/data/skills";
 import { SkillCard } from "@/components/SkillCard";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SearchInput } from "@/components/SearchInput";
 import { SiteHeader } from "@/components/SiteHeader";
+import { Footer } from "@/components/Footer";
+import { SITE_URL } from "@/lib/seo";
+
+const VALID_CATEGORIES: (Category | "all" | "featured")[] = [
+  "all",
+  "featured",
+  "document-processing",
+  "development",
+  "data-analysis",
+  "business-marketing",
+  "communication",
+  "creative-media",
+  "productivity",
+  "collaboration",
+  "security",
+];
 
 export default function SkillsPage() {
   const params = useParams();
+  const searchParams = useSearchParams();
   const locale = (params?.locale as string) || "en";
-  
+
   const [activeCategory, setActiveCategory] = useState<Category | "all" | "featured">("all");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // Read category from URL on mount and when searchParams change
+  useEffect(() => {
+    const categoryFromUrl = searchParams.get("category");
+    if (categoryFromUrl && VALID_CATEGORIES.includes(categoryFromUrl as Category)) {
+      setActiveCategory(categoryFromUrl as Category);
+    }
+  }, [searchParams]);
 
   const filteredSkills = useMemo(() => {
     let result = skills;
@@ -26,14 +51,14 @@ export default function SkillsPage() {
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-        result = result.filter((s) => {
-          const description = locale === "zh" ? s.descriptionZh || s.description : s.description;
-          return (
-            s.name.toLowerCase().includes(query) ||
-            description.toLowerCase().includes(query) ||
-            s.tags?.some((tag) => tag.toLowerCase().includes(query))
-          );
-        });
+      result = result.filter((s) => {
+        const description = locale === "zh" ? s.descriptionZh || s.description : s.description;
+        return (
+          s.name.toLowerCase().includes(query) ||
+          description.toLowerCase().includes(query) ||
+          s.tags?.some((tag) => tag.toLowerCase().includes(query))
+        );
+      });
 
     }
 
@@ -49,8 +74,31 @@ export default function SkillsPage() {
   const noResultsText = locale === "zh" ? "没有找到匹配的 skills" : "No skills found matching your criteria";
   const clearFiltersText = locale === "zh" ? "清除筛选" : "Clear filters";
 
+  // ItemList structured data for SEO
+  const skillsListJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: title,
+    description: subtitle,
+    numberOfItems: skills.length,
+    itemListElement: skills.slice(0, 50).map((skill, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      item: {
+        "@type": "CreativeWork",
+        name: skill.name,
+        description: locale === "zh" ? skill.descriptionZh || skill.description : skill.description,
+        url: `${SITE_URL}${locale === "zh" ? "/zh" : ""}/skills/${skill.id}`,
+      },
+    })),
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(skillsListJsonLd) }}
+      />
       <SiteHeader current="skills" />
 
       <main className="pt-32 pb-20">
@@ -106,11 +154,7 @@ export default function SkillsPage() {
         </section>
       </main>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-8">
-        <div className="max-w-6xl mx-auto px-6 text-center text-zinc-500 dark:text-zinc-500">
-          © {new Date().getFullYear()} Open Agent Skills. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

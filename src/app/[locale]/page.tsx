@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkillCard } from "@/components/SkillCard";
 import { getFeaturedSkills, skills } from "@/data/skills";
@@ -22,7 +23,11 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "metadata" });
-  const title = formatTitle(`${t("title")} — ${t("description")}`);
+  // Use a shorter title for homepage to avoid truncation
+  const shortTitle = locale === "zh"
+    ? "Open Agent Skills — AI 代理技能分享平台"
+    : "Open Agent Skills — AI Agent Skills Hub";
+  const title = formatTitle(shortTitle);
   const description = t("description");
   const typedLocale = locale as Locale;
 
@@ -234,11 +239,7 @@ export default async function HomePage({
         </section>
       </main>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-8">
-        <div className="max-w-6xl mx-auto px-6 text-center text-zinc-500 dark:text-zinc-500">
-          © {new Date().getFullYear()} Open Agent Skills. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }

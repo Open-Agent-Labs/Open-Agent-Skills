@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
@@ -13,11 +14,17 @@ interface SiteHeaderProps {
 
 export function SiteHeader({ current }: SiteHeaderProps) {
   const t = useTranslations("nav");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItemClasses = (isActive: boolean): string =>
     isActive
       ? "text-zinc-900 dark:text-white font-medium"
       : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors";
+
+  const mobileNavItemClasses = (isActive: boolean): string =>
+    isActive
+      ? "block px-4 py-3 text-zinc-900 dark:text-white font-medium bg-zinc-100 dark:bg-zinc-800 rounded-lg"
+      : "block px-4 py-3 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800">
@@ -29,6 +36,7 @@ export function SiteHeader({ current }: SiteHeaderProps) {
           >
             Open Agent Skills
           </Link>
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-6">
             <Link
               href="/"
@@ -67,8 +75,58 @@ export function SiteHeader({ current }: SiteHeaderProps) {
             </svg>
           </Link>
           <LanguageSwitcher />
+          {/* Mobile Menu Button */}
+          <button
+            type="button"
+            className="md:hidden w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileMenuOpen}
+          >
+            {mobileMenuOpen ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            )}
+          </button>
         </div>
       </nav>
+
+      {/* Mobile Navigation Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md">
+          <div className="px-4 py-4 space-y-2">
+            <Link
+              href="/"
+              className={mobileNavItemClasses(current === "home")}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={current === "home" ? "page" : undefined}
+            >
+              {t("home")}
+            </Link>
+            <Link
+              href="/skills"
+              className={mobileNavItemClasses(current === "skills")}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={current === "skills" ? "page" : undefined}
+            >
+              {t("skills")}
+            </Link>
+            <Link
+              href="/docs/introduction"
+              className={mobileNavItemClasses(current === "docs")}
+              onClick={() => setMobileMenuOpen(false)}
+              aria-current={current === "docs" ? "page" : undefined}
+            >
+              {t("docs")}
+            </Link>
+          </div>
+        </div>
+      )}
     </header>
   );
 }

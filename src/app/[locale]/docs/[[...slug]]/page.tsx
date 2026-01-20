@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 import type { Options as PrettyCodeOptions } from "rehype-pretty-code";
 import { DocsNavigation } from "@/components/DocsNavigation";
 import { DocsSidebar, MobileDocsSidebar } from "@/components/DocsSidebar";
+import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
@@ -127,29 +128,29 @@ export default async function DocsPage({
   };
   const breadcrumbJsonLd = content
     ? {
-        "@context": "https://schema.org",
-        "@type": "BreadcrumbList",
-        itemListElement: [
-          {
-            "@type": "ListItem",
-            position: 1,
-            name: navLabels.home,
-            item: buildUrl(typedLocale, "/").toString(),
-          },
-          {
-            "@type": "ListItem",
-            position: 2,
-            name: navLabels.docs,
-            item: buildUrl(typedLocale, "/docs/introduction").toString(),
-          },
-          {
-            "@type": "ListItem",
-            position: 3,
-            name: content.title,
-            item: buildUrl(typedLocale, `/docs/${slugPath}`).toString(),
-          },
-        ],
-      }
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: navLabels.home,
+          item: buildUrl(typedLocale, "/").toString(),
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: navLabels.docs,
+          item: buildUrl(typedLocale, "/docs/introduction").toString(),
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: content.title,
+          item: buildUrl(typedLocale, `/docs/${slugPath}`).toString(),
+        },
+      ],
+    }
     : null;
 
   return (
@@ -228,11 +229,7 @@ export default async function DocsPage({
         </div>
       </div>
 
-      <footer className="border-t border-zinc-200 dark:border-zinc-800 py-8">
-        <div className="max-w-6xl mx-auto px-6 text-center text-zinc-500 dark:text-zinc-500">
-          © {new Date().getFullYear()} Open Agent Skills. All rights reserved.
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 }
