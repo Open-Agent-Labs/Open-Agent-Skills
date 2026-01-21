@@ -292,3 +292,8 @@ pnpm build:worker && pnpm deploy
 ```
 
 在 `wrangler.jsonc` 中配置 Cloudflare 设置。
+
+## 限制
+这个项目最终是要部署到 cloudflare Worker
+
+1. 不能使用 Worker 不支持的语法

@@ -1,8 +1,38 @@
+import type { Locale } from "@/i18n/routing";
+import { GENERATED_DOCS } from "@/content/docs.generated";
 import fs from "fs";
 import path from "path";
-import type { Locale } from "@/i18n/routing";
 
 const contentDirectory = path.join(process.cwd(), "src/content");
+const isProduction = process.env.NODE_ENV === "production";
+
+function getGeneratedDocs(locale: Locale): Record<string, ContentItem> {
+  return GENERATED_DOCS[locale] ?? {};
+}
+
+function getGeneratedContent(locale: Locale, slug: string): ContentItem | null {
+  const localeDocs = getGeneratedDocs(locale);
+  const entry = localeDocs[slug];
+
+  if (entry) {
+    return entry;
+  }
+
+  if (locale === "zh") {
+    const fallback = getGeneratedDocs("en")[slug];
+    return fallback ?? null;
+  }
+
+  return null;
+}
+
+function canAccessDirectory(dir: string): boolean {
+  try {
+    return fs.existsSync(dir);
+  } catch {
+    return false;
+  }
+}
 
 export interface ContentMeta {
   slug: string;
@@ -29,6 +59,15 @@ export function getContentDirectory(type: "docs" | "blog") {
 
 export function getContentSlugs(locale: Locale, type: "docs" | "blog") {
   const dir = getContentDirectory(type);
+
+  if (type === "docs") {
+    if (!canAccessDirectory(dir)) {
+      return Object.keys(getGeneratedDocs(locale));
+    }
+    if (isProduction) {
+      return Object.keys(getGeneratedDocs(locale));
+    }
+  }
 
   if (!fs.existsSync(dir)) {
     return [];
@@ -68,6 +107,15 @@ export async function getContentBySlug(
 ): Promise<ContentItem | null> {
   const dir = getContentDirectory(type);
   
+  if (type === "docs") {
+    if (!canAccessDirectory(dir)) {
+      return getGeneratedContent(locale, slug);
+    }
+    if (isProduction) {
+      return getGeneratedContent(locale, slug);
+    }
+  }
+
   let filePath = "";
   
   if (locale === "zh") {

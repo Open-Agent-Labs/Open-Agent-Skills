@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
-    "build": "next build",
+    "build": "node scripts/generate-docs-index.mjs && next build",
     "start": "next start",
     "lint": "eslint",
-    "build:worker": "opennextjs-cloudflare build",
+    "build:worker": "node scripts/generate-docs-index.mjs && opennextjs-cloudflare build",
     "deploy": "opennextjs-cloudflare build && opennextjs-cloudflare deploy",
-    "preview": "opennextjs-cloudflare dev"
+    "preview": "opennextjs-cloudflare preview"
   },
   "dependencies": {
     "@mdx-js/loader": "^3.1.1",
