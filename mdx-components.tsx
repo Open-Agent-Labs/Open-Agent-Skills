@@ -52,7 +52,24 @@ export function useMDXComponents(components: MDXComponents): MDXComponents {
         {children}
       </strong>
     ),
-    // code 和 pre 组件由 rehype-pretty-code 处理，不再手动覆盖
+    // 代码块样式
+    pre: ({ children }) => (
+      <pre className="bg-zinc-900 dark:bg-zinc-950 text-zinc-100 rounded-lg p-4 overflow-x-auto my-4 text-sm leading-relaxed">
+        {children}
+      </pre>
+    ),
+    code: ({ children, className }) => {
+      // 如果有 className（代码块内的 code），不添加额外样式
+      if (className) {
+        return <code className={className}>{children}</code>;
+      }
+      // 内联代码样式
+      return (
+        <code className="bg-zinc-100 dark:bg-zinc-800 text-zinc-800 dark:text-zinc-200 px-1.5 py-0.5 rounded text-sm font-mono">
+          {children}
+        </code>
+      );
+    },
     blockquote: ({ children }) => (
       <blockquote className="border-l-4 border-blue-500 pl-4 italic text-zinc-600 dark:text-zinc-400 my-6 bg-blue-50 dark:bg-blue-900/20 py-3 pr-4 rounded-r-lg">
         {children}

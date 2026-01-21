@@ -1,13 +1,10 @@
 import type { Metadata } from "next";
 import { notFound, redirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
-import { MDXRemote } from "next-mdx-remote/rsc";
-import rehypePrettyCode from "rehype-pretty-code";
-import remarkGfm from "remark-gfm";
-import type { Options as PrettyCodeOptions } from "rehype-pretty-code";
 import { DocsNavigation } from "@/components/DocsNavigation";
 import { DocsSidebar, MobileDocsSidebar } from "@/components/DocsSidebar";
 import { Footer } from "@/components/Footer";
+import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Link } from "@/i18n/navigation";
 import { routing, type Locale } from "@/i18n/routing";
@@ -22,13 +19,6 @@ import {
   localizedPath,
   SITE_NAME,
 } from "@/lib/seo";
-import { useMDXComponents } from "../../../../../mdx-components";
-
-// rehype-pretty-code 配置
-const prettyCodeOptions: PrettyCodeOptions = {
-  theme: "github-dark",
-  keepBackground: true,
-};
 
 export function generateStaticParams() {
   const paths: { locale: string; slug: string[] }[] = [];
@@ -117,8 +107,6 @@ export default async function DocsPage({
     notFound();
   }
 
-  const components = useMDXComponents({});
-
   const navT = await getTranslations({ locale, namespace: "nav" });
   const docsT = await getTranslations({ locale, namespace: "docs" });
   const navLabels = {
@@ -189,18 +177,7 @@ export default async function DocsPage({
 
             {content ? (
               <>
-                <article className="prose prose-zinc dark:prose-invert max-w-none prose-headings:scroll-mt-24 prose-a:text-blue-600 dark:prose-a:text-blue-400 prose-code:before:content-none prose-code:after:content-none">
-                  <MDXRemote
-                    source={content.content}
-                    components={components}
-                    options={{
-                      mdxOptions: {
-                        remarkPlugins: [remarkGfm],
-                        rehypePlugins: [[rehypePrettyCode, prettyCodeOptions]],
-                      },
-                    }}
-                  />
-                </article>
+                <MarkdownRenderer content={content.content} />
                 <DocsNavigation
                   docs={allDocs}
                   currentSlug={slugPath}
