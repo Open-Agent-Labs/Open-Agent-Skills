@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { parseGitHubUrl } from "@/lib/github";
 
 export const runtime = "edge";
@@ -49,7 +50,17 @@ export async function GET(request: NextRequest) {
     "User-Agent": "Open-Agent-Skills",
   };
 
-  const token = process.env.GITHUB_TOKEN;
+  let token = process.env.GITHUB_TOKEN;
+  try {
+    const context = getCloudflareContext();
+    const env = context.env as Record<string, any>;
+    if (env.GITHUB_TOKEN) {
+      token = env.GITHUB_TOKEN;
+    }
+  } catch (e) {
+    // Fallback to process.env
+  }
+
   if (token) {
     headers.Authorization = `Bearer ${token}`;
   }

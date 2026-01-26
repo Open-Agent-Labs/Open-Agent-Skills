@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { DetailTabs } from "@/components/DetailTabs";
@@ -125,7 +126,19 @@ export default async function SkillDetailPage({
   const parsedRepo = parseGitHubUrl(skill.repository);
   if (parsedRepo) {
     try {
-      repoMeta = await fetchRepoMeta(parsedRepo.owner, parsedRepo.repo, process.env.GITHUB_TOKEN);
+      // Get token from Cloudflare context (Production) or process.env (Local/Build)
+      let token = process.env.GITHUB_TOKEN;
+      try {
+        const context = getCloudflareContext();
+        const env = context.env as Record<string, any>;
+        if (env.GITHUB_TOKEN) {
+          token = env.GITHUB_TOKEN;
+        }
+      } catch (e) {
+        // Fallback to process.env if context is not available
+      }
+
+      repoMeta = await fetchRepoMeta(parsedRepo.owner, parsedRepo.repo, token);
     } catch (error) {
       console.error("Failed to fetch repo meta:", error);
     }
