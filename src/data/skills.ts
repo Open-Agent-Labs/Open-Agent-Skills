@@ -22,6 +22,7 @@ export interface Skill {
   tags?: string[];
   featured?: boolean;
   official?: boolean;
+  createdAt?: string;
 }
 
 export const skills: Skill[] = [
