@@ -9,7 +9,7 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkillCard } from "@/components/SkillCard";
 import { getCategoryById } from "@/data/categories";
-import { getAllSkills, getSkillById, getRelatedSkills } from "@/lib/d1";
+import { getSkillById, getRelatedSkills } from "@/lib/d1";
 import type { Locale } from "@/i18n/routing";
 import {
   buildAlternates,
@@ -21,10 +21,7 @@ import {
   SITE_NAME,
 } from "@/lib/seo";
 
-export async function generateStaticParams() {
-  const allSkills = await getAllSkills();
-  return allSkills.map((skill) => ({ id: skill.id }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,

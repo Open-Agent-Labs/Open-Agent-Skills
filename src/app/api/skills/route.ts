@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSkills, type GetSkillsParams } from "@/lib/d1";
 import type { Category } from "@/data/skills";
 
-export const runtime = "edge";
-
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 

@@ -12,6 +12,8 @@ import {
   SITE_NAME,
 } from "@/lib/seo";
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({
   params,
 }: {
