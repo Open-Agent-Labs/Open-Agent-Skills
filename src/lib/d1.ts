@@ -1,77 +1,30 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { Category, Skill } from "@/data/skills";
 import { skills as staticSkills } from "@/data/skills";
+import { drizzle } from "drizzle-orm/d1";
+import * as schema from "@/db/schema";
+import { eq, and, or, like, desc, asc, inArray } from "drizzle-orm";
 
-export interface D1Database {
-  prepare(query: string): D1PreparedStatement;
-  batch<T = unknown>(statements: D1PreparedStatement[]): Promise<D1Result<T>[]>;
-}
-
-export interface D1PreparedStatement {
-  bind(...values: unknown[]): D1PreparedStatement;
-  first<T = unknown>(colName?: string): Promise<T | null>;
-  all<T = unknown>(): Promise<D1Result<T>>;
-  run(): Promise<D1Result>;
-}
-
-export interface D1Result<T = unknown> {
-  success: boolean;
-  meta?: { changes?: number; last_row_id?: number; duration?: number };
-  results?: T[];
-}
-
-interface SkillRow {
-  id: string;
-  name: string;
-  description: string;
-  description_zh: string | null;
-  content: string | null;
-  content_zh: string | null;
-  category: string;
-  repository: string;
-  author: string | null;
-  featured: number;
-  official: number;
-  created_at: string;
-  updated_at: string;
-}
-
-interface TagRow {
-  tag: string;
-}
-
-function getDB(): D1Database | null {
-  try {
-    const context = getCloudflareContext();
-    const env = context.env as Record<string, unknown>;
-    const db = env.DB;
-    if (!db) {
-      console.warn("D1 database binding 'DB' not found, falling back to static data");
-      return null;
-    }
-    return db as D1Database;
-  } catch (error) {
-    // During build or in some dev environments, getCloudflareContext might fail
-    console.warn("getCloudflareContext failed, falling back to static data:", error instanceof Error ? error.message : String(error));
+function getDB() {
+  // 预检查：如果不在 Node.js 环境或明确在构建阶段，直接返回 null 避免触发敏感报错
+  if (typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build") {
     return null;
   }
-}
 
-function rowToSkill(row: SkillRow, tags: string[] = []): Skill {
-  return {
-    id: row.id,
-    name: row.name,
-    description: row.description,
-    descriptionZh: row.description_zh || undefined,
-    content: row.content || undefined,
-    contentZh: row.content_zh || undefined,
-    category: row.category as Category,
-    repository: row.repository,
-    author: row.author || undefined,
-    tags: tags.length > 0 ? tags : undefined,
-    featured: row.featured === 1,
-    official: row.official === 1,
-  };
+  try {
+    // 只有在存在这个全局初始化标记时才尝试，或者在生产环境下尝试
+    // 注意：initOpenNextCloudflareForDev 会设置一些内部标记
+    const context = getCloudflareContext();
+    const env = context.env as Record<string, any>;
+    const d1 = env.DB;
+    if (!d1) {
+      return null;
+    }
+    return drizzle(d1, { schema });
+  } catch (error) {
+    // 静默失败，不打印堆栈，只在非常必要时记录
+    return null;
+  }
 }
 
 export async function getSkillById(id: string): Promise<Skill | null> {
@@ -80,23 +33,29 @@ export async function getSkillById(id: string): Promise<Skill | null> {
     return staticSkills.find((s) => s.id === id) || null;
   }
 
-  const skillRow = await db
-    .prepare("SELECT * FROM skills WHERE id = ?")
-    .bind(id)
-    .first<SkillRow>();
+  const result = await db.query.skills.findFirst({
+    where: eq(schema.skills.id, id),
+  });
 
-  if (!skillRow) {
+  if (!result) {
     return null;
   }
 
-  const tagsResult = await db
-    .prepare("SELECT tag FROM skill_tags WHERE skill_id = ?")
-    .bind(id)
-    .all<TagRow>();
+  const tags = await db.query.skillTags.findMany({
+    where: eq(schema.skillTags.skillId, id),
+  });
 
-  const tags = tagsResult.results?.map((t) => t.tag) || [];
-
-  return rowToSkill(skillRow, tags);
+  return {
+    ...result,
+    descriptionZh: result.descriptionZh || undefined,
+    content: result.content || undefined,
+    contentZh: result.contentZh || undefined,
+    author: result.author || undefined,
+    category: result.category as Category,
+    featured: result.featured === 1,
+    official: result.official === 1,
+    tags: tags.length > 0 ? tags.map((t) => t.tag) : undefined,
+  };
 }
 
 export interface GetSkillsParams {
@@ -138,65 +97,62 @@ export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> 
     return result.slice(offset, offset + limit);
   }
 
-  let query = "SELECT DISTINCT s.* FROM skills s";
-  const bindings: unknown[] = [];
-
-  if (tag) {
-    query += " INNER JOIN skill_tags st ON s.id = st.skill_id";
-  }
-
-  const conditions: string[] = [];
+  const whereConditions = [];
 
   if (category) {
-    conditions.push("s.category = ?");
-    bindings.push(category);
+    whereConditions.push(eq(schema.skills.category, category));
   }
-
   if (featured !== undefined) {
-    conditions.push("s.featured = ?");
-    bindings.push(featured ? 1 : 0);
+    whereConditions.push(eq(schema.skills.featured, featured ? 1 : 0));
   }
-
   if (official !== undefined) {
-    conditions.push("s.official = ?");
-    bindings.push(official ? 1 : 0);
+    whereConditions.push(eq(schema.skills.official, official ? 1 : 0));
   }
-
-  if (tag) {
-    conditions.push("st.tag = ?");
-    bindings.push(tag);
-  }
-
   if (search) {
-    conditions.push(
-      "(s.name LIKE ? OR s.description LIKE ? OR s.description_zh LIKE ?)"
-    );
     const searchPattern = `%${search}%`;
-    bindings.push(searchPattern, searchPattern, searchPattern);
+    whereConditions.push(
+      or(
+        like(schema.skills.name, searchPattern),
+        like(schema.skills.description, searchPattern),
+        like(schema.skills.descriptionZh, searchPattern)
+      )
+    );
   }
 
-  if (conditions.length > 0) {
-    query += " WHERE " + conditions.join(" AND ");
+  // Handle tag filtering separately
+  if (tag) {
+    const taggedSkills = await db.query.skillTags.findMany({
+      where: eq(schema.skillTags.tag, tag),
+    });
+    const skillIds = taggedSkills.map(ts => ts.skillId);
+    if (skillIds.length === 0) return [];
+    
+    whereConditions.push(inArray(schema.skills.id, skillIds));
   }
 
-  query += " ORDER BY s.featured DESC, s.official DESC, s.name ASC";
-  query += " LIMIT ? OFFSET ?";
-  bindings.push(limit, offset);
-
-  const result = await db.prepare(query).bind(...bindings).all<SkillRow>();
-
-  if (!result.results || result.results.length === 0) {
-    return [];
-  }
+  const skillResults = await db.query.skills.findMany({
+    where: and(...whereConditions),
+    orderBy: [desc(schema.skills.featured), desc(schema.skills.official), asc(schema.skills.name)],
+    limit,
+    offset,
+  });
 
   const skillsWithTags = await Promise.all(
-    result.results.map(async (row) => {
-      const tagsResult = await db
-        .prepare("SELECT tag FROM skill_tags WHERE skill_id = ?")
-        .bind(row.id)
-        .all<TagRow>();
-      const tags = tagsResult.results?.map((t) => t.tag) || [];
-      return rowToSkill(row, tags);
+    skillResults.map(async (s) => {
+      const tags = await db.query.skillTags.findMany({
+        where: eq(schema.skillTags.skillId, s.id),
+      });
+      return {
+        ...s,
+        descriptionZh: s.descriptionZh || undefined,
+        content: s.content || undefined,
+        contentZh: s.contentZh || undefined,
+        author: s.author || undefined,
+        category: s.category as Category,
+        featured: s.featured === 1,
+        official: s.official === 1,
+        tags: tags.length > 0 ? tags.map((t) => t.tag) : undefined,
+      };
     })
   );
 
