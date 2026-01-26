@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 import fs from "fs";
 import path from "path";
 import { routing, type Locale } from "@/i18n/routing";
-import { skills } from "@/data/skills";
+import { getAllSkills } from "@/lib/d1";
 import { getContentSlugs } from "@/lib/mdx";
 import { SITE_URL, localizedPath } from "@/lib/seo";
 
@@ -86,7 +86,8 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
 
     // Skills detail pages - use skills data modification time
-    for (const skill of skills) {
+    const allSkills = await getAllSkills();
+    for (const skill of allSkills) {
       entries.push({
         url: new URL(
           localizedPath(typedLocale, `/skills/${skill.id}`),

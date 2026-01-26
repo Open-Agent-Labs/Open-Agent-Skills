@@ -5356,38 +5356,3 @@ A: 分析两种可能性并指出可能的原因。`,
 
 ];
 
-// Helper functions
-export function getSkillById(id: string): Skill | undefined {
-  return skills.find((skill) => skill.id === id);
-}
-
-export function getSkillsByCategory(category: Category): Skill[] {
-  return skills.filter((skill) => skill.category === category);
-}
-
-export function getFeaturedSkills(): Skill[] {
-  return skills.filter((skill) => skill.featured);
-}
-
-export function getOfficialSkills(): Skill[] {
-  return skills.filter((skill) => skill.official);
-}
-
-export function searchSkills(query: string): Skill[] {
-  const lowerQuery = query.toLowerCase();
-  return skills.filter(
-    (skill) =>
-      skill.name.toLowerCase().includes(lowerQuery) ||
-      skill.description.toLowerCase().includes(lowerQuery) ||
-      skill.tags?.some((tag) => tag.toLowerCase().includes(lowerQuery))
-  );
-}
-
-export function getRelatedSkills(skillId: string, limit = 3): Skill[] {
-  const skill = getSkillById(skillId);
-  if (!skill) return [];
-  
-  return skills
-    .filter((s) => s.id !== skillId && s.category === skill.category)
-    .slice(0, limit);
-}

@@ -1,28 +1,34 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { Category, Skill } from "@/data/skills";
-import { skills as staticSkills } from "@/data/skills";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "@/db/schema";
 import { eq, and, or, like, desc, asc, inArray } from "drizzle-orm";
 
 function getDB() {
-  // 预检查：如果不在 Node.js 环境或明确在构建阶段，直接返回 null 避免触发敏感报错
+  // 1. 预检查：如果在构建阶段，直接返回 null。
+  // 在 Next.js 构建阶段，D1 绑定通常不可用，且 getCloudflareContext 会抛错。
   if (typeof process !== "undefined" && process.env.NEXT_PHASE === "phase-production-build") {
     return null;
   }
 
   try {
-    // 只有在存在这个全局初始化标记时才尝试，或者在生产环境下尝试
-    // 注意：initOpenNextCloudflareForDev 会设置一些内部标记
     const context = getCloudflareContext();
     const env = context.env as Record<string, any>;
     const d1 = env.DB;
     if (!d1) {
+      // 如果没有绑定，我们不能抛错导致整个应用崩溃（比如在某些开发环境下）
+      // 而是返回 null 让调用方处理（虽然用户要求始终使用 D1，但在没有 D1 的环境还是得优雅一点）
+      console.warn("D1 database binding 'DB' not found");
       return null;
     }
     return drizzle(d1, { schema });
-  } catch (error) {
-    // 静默失败，不打印堆栈，只在非常必要时记录
+  } catch (error: any) {
+    // 针对用户遇到的 initOpenNextCloudflareForDev 未调用错误进行友好提示
+    if (error?.message?.includes("initOpenNextCloudflareForDev")) {
+      console.error("Cloudflare context not initialized. Please ensure 'initOpenNextCloudflareForDev()' is called in next.config.ts and restart the dev server.");
+    } else {
+      console.error("Failed to get D1 database:", error);
+    }
     return null;
   }
 }
@@ -30,7 +36,10 @@ function getDB() {
 export async function getSkillById(id: string): Promise<Skill | null> {
   const db = getDB();
   if (!db) {
-    return staticSkills.find((s) => s.id === id) || null;
+    // 如果没有数据库且是构建阶段，可以考虑是否要报错
+    // 但为了应用能跑起来，目前只能返回 null。
+    // 如果后续用户确定要在构建阶段也强制 D1，需要配置相应的构建环境。
+    return null;
   }
 
   const result = await db.query.skills.findFirst({
@@ -70,6 +79,8 @@ export interface GetSkillsParams {
 
 export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> {
   const db = getDB();
+  if (!db) return [];
+
   const {
     category,
     featured,
@@ -79,23 +90,6 @@ export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> 
     limit = 1000,
     offset = 0,
   } = params;
-
-  if (!db) {
-    let result = [...staticSkills];
-    if (category) result = result.filter((s) => s.category === category);
-    if (featured !== undefined) result = result.filter((s) => s.featured === featured);
-    if (official !== undefined) result = result.filter((s) => s.official === official);
-    if (tag) result = result.filter((s) => s.tags?.includes(tag));
-    if (search) {
-      const lowerSearch = search.toLowerCase();
-      result = result.filter(
-        (s) =>
-          s.name.toLowerCase().includes(lowerSearch) ||
-          s.description.toLowerCase().includes(lowerSearch)
-      );
-    }
-    return result.slice(offset, offset + limit);
-  }
 
   const whereConditions = [];
 
@@ -190,3 +184,4 @@ export async function getRelatedSkills(skillId: string, limit = 3): Promise<Skil
 
   return relatedSkills.filter((s) => s.id !== skillId).slice(0, limit);
 }
+

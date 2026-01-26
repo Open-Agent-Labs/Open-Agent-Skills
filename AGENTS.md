@@ -45,6 +45,7 @@ pnpm preview         # 本地 Cloudflare 预览
 | 国际化 | next-intl ^4.7.0 |
 | MDX | next-mdx-remote, @next/mdx |
 | 代码高亮 | rehype-pretty-code, Shiki |
+| 数据库 | Cloudflare D1 (Drizzle ORM) |
 | 部署 | Cloudflare Workers (opennextjs-cloudflare) |
 | 包管理器 | pnpm |
 
@@ -92,7 +93,7 @@ import { parseGitHubUrl } from "./github";
 
 // 路径别名：@/* 映射到 ./src/*
 import { SkillCard } from "@/components/SkillCard";
-import { skills } from "@/data/skills";
+import { getSkills } from "@/lib/d1";
 ```
 
 ### 命名规范
@@ -103,6 +104,7 @@ import { skills } from "@/data/skills";
 | 文件（组件） | PascalCase.tsx | `SkillCard.tsx` |
 | 文件（工具） | kebab-case.ts | `github.ts`, `mdx.ts` |
 | 函数 | camelCase | `getSkillById`, `fetchRepoContents` |
+| 数据库表 | snake_case | `skills`, `skill_tags` |
 | 类型/接口 | PascalCase | `Skill`, `GitHubTreeItem` |
 | 常量 | SCREAMING_SNAKE_CASE | `GROUP_ORDER`, `GROUP_LABELS` |
 | CSS 类名 | Tailwind 工具类 | `bg-zinc-900 dark:bg-white` |
@@ -194,23 +196,31 @@ const skillsPath = locale === "en" ? "/skills" : `/${locale}/skills`;
 
 ## 数据管理
 
-### Skills 数据（`src/data/skills.ts`）
+### Skills 数据 (Cloudflare D1)
 
-```typescript
-// 在 skills 数组中添加新技能
-export const skills: Skill[] = [
-  {
-    id: "my-skill",           // URL 友好的 slug
-    name: "My Skill",
-    description: "简短描述",
-    category: "development",   // 必须匹配 Category 类型
-    repository: "https://github.com/user/repo",
-    author: "username",
-    tags: ["tag1", "tag2"],
-    featured: false,           // 是否在首页展示
-    official: false,           // 是否为官方技能
-  },
-];
+本项目使用 Cloudflare D1 作为数据库，并使用 Drizzle ORM 进行操作。
+
+- **Schema 定义**: `src/db/schema.ts`
+- **数据访问层**: `src/lib/d1.ts`
+- **静态数据回退**: `src/data/skills.ts` (仅用于构建时和本地开发初始化)
+
+#### 常用数据库命令
+
+```bash
+# 生成迁移文件
+pnpm db:generate
+
+# 应用迁移到本地
+pnpm db:migrate:local
+
+# 应用迁移到生产
+pnpm db:migrate:remote
+
+# 导入本地种子数据
+pnpm db:seed:local
+
+# 推送本地数据到生产
+pnpm db:seed:remote
 ```
 
 ### MDX 文档（`src/content/docs/`）
@@ -266,8 +276,9 @@ GITHUB_TOKEN=ghp_xxxxxxxxxxxx
 
 ### 添加新技能
 
-1. 编辑 `src/data/skills.ts` - 在 `skills` 数组中添加条目
-2. 确保分类在 `src/data/categories.ts` 中存在
+1. 临时方案：编辑 `src/data/skills.ts` 并在本地运行 `pnpm db:seed:local` 同步到 D1。
+2. 生产方案：运行 `pnpm db:seed:remote` 同步到生产环境。
+3. 未来计划：增加管理后台直接操作 D1。
 
 ### 添加新文档页面
 
