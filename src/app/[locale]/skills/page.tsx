@@ -1,14 +1,10 @@
-"use client";
-
-import { useState, useEffect } from "react";
-import { useParams, useSearchParams } from "next/navigation";
-import type { Category, Skill } from "@/data/skills";
-import { SkillCard } from "@/components/SkillCard";
-import { CategoryTabs } from "@/components/CategoryTabs";
-import { SearchInput } from "@/components/SearchInput";
+import { setRequestLocale } from "next-intl/server";
+import type { Category } from "@/data/skills";
+import { SkillsPageClient } from "@/components/SkillsPageClient";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { SITE_URL } from "@/lib/seo";
+import { getSkills } from "@/lib/d1";
 
 const VALID_CATEGORIES: (Category | "all" | "featured")[] = [
   "all",
@@ -24,78 +20,35 @@ const VALID_CATEGORIES: (Category | "all" | "featured")[] = [
   "security",
 ];
 
-export default function SkillsPage() {
-  const params = useParams();
-  const searchParams = useSearchParams();
-  const locale = (params?.locale as string) || "en";
+type SearchParams = Record<string, string | string[] | undefined>;
 
-  const [activeCategory, setActiveCategory] = useState<Category | "all" | "featured">("all");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [skills, setSkills] = useState<Skill[]>([]);
-  const [filteredSkills, setFilteredSkills] = useState<Skill[]>([]);
-  const [loading, setLoading] = useState(true);
+function getFirstParam(value: string | string[] | undefined): string | undefined {
+  if (Array.isArray(value)) {
+    return value[0];
+  }
+  return value;
+}
 
-  // Fetch skills from API
-  useEffect(() => {
-    async function fetchSkills() {
-      setLoading(true);
-      try {
-        const response = await fetch("/api/skills");
-        if (response.ok) {
-          const data = await response.json();
-          setSkills(data);
-        }
-      } catch (error) {
-        console.error("Failed to fetch skills:", error);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchSkills();
-  }, []);
-
-  // Read category from URL on mount and when searchParams change
-  useEffect(() => {
-    const categoryFromUrl = searchParams.get("category");
-    if (categoryFromUrl && VALID_CATEGORIES.includes(categoryFromUrl as Category)) {
-      setActiveCategory(categoryFromUrl as Category);
-    }
-  }, [searchParams]);
-
-  // Filter skills based on category and search query
-  useEffect(() => {
-    let result = skills;
-
-    if (activeCategory === "featured") {
-      result = skills.filter((s) => s.featured);
-    } else if (activeCategory !== "all") {
-      result = skills.filter((s) => s.category === activeCategory);
-    }
-
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase();
-      result = result.filter((s) => {
-        const description = locale === "zh" ? s.descriptionZh || s.description : s.description;
-        return (
-          s.name.toLowerCase().includes(query) ||
-          description.toLowerCase().includes(query) ||
-          s.tags?.some((tag) => tag.toLowerCase().includes(query))
-        );
-      });
-    }
-
-    setFilteredSkills(result);
-  }, [skills, activeCategory, searchQuery, locale]);
-
+export default async function SkillsPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ locale: string }>;
+  searchParams?: Promise<SearchParams> | SearchParams;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const resolvedSearchParams = searchParams ? await Promise.resolve(searchParams) : undefined;
+  const categoryParam = resolvedSearchParams ? getFirstParam(resolvedSearchParams.category) : undefined;
+  const initialCategory = categoryParam && VALID_CATEGORIES.includes(categoryParam as Category | "all" | "featured")
+    ? (categoryParam as Category | "all" | "featured")
+    : "all";
+  const skills = await getSkills();
   const title = locale === "zh" ? "发现 Agent Skills" : "Discover Agent Skills";
   const subtitle =
     locale === "zh"
       ? `浏览 ${skills.length}+ 个技能，增强你的 AI Agent 能力`
       : `Browse ${skills.length}+ skills to enhance your AI agent`;
-  const searchPlaceholder = locale === "zh" ? "搜索 skills..." : "Search skills...";
-  const noResultsText = locale === "zh" ? "没有找到匹配的 skills" : "No skills found matching your criteria";
-  const clearFiltersText = locale === "zh" ? "清除筛选" : "Clear filters";
-
   // ItemList structured data for SEO
   const skillsListJsonLd = {
     "@context": "https://schema.org",
@@ -122,66 +75,13 @@ export default function SkillsPage() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(skillsListJsonLd) }}
       />
       <SiteHeader current="skills" />
-
-      <main className="pt-32 pb-20">
-        <section className="max-w-6xl mx-auto px-6">
-          <div className="text-center mb-12">
-            <h1 className="text-4xl md:text-5xl font-bold text-zinc-900 dark:text-white mb-4 tracking-tight">
-              {title}
-            </h1>
-            <p className="text-lg text-zinc-600 dark:text-zinc-400">
-              {subtitle}
-            </p>
-          </div>
-
-          <div className="mb-8">
-            <SearchInput
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder={searchPlaceholder}
-            />
-          </div>
-
-          <div className="mb-8 overflow-x-auto pb-2">
-            <CategoryTabs
-              activeCategory={activeCategory}
-              onCategoryChange={setActiveCategory}
-              locale={locale}
-            />
-          </div>
-
-          {loading ? (
-            <div className="text-center py-16">
-              <div className="text-6xl mb-4">⏳</div>
-              <p className="text-zinc-600 dark:text-zinc-400">
-                {locale === "zh" ? "加载中..." : "Loading..."}
-              </p>
-            </div>
-          ) : filteredSkills.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredSkills.map((skill) => (
-                <SkillCard key={skill.id} skill={skill} locale={locale} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <div className="text-6xl mb-4">🔍</div>
-              <p className="text-zinc-600 dark:text-zinc-400 mb-4">
-                {noResultsText}
-              </p>
-              <button
-                onClick={() => {
-                  setSearchQuery("");
-                  setActiveCategory("all");
-                }}
-                className="px-4 py-2 text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline"
-              >
-                {clearFiltersText}
-              </button>
-            </div>
-          )}
-        </section>
-      </main>
+      <SkillsPageClient
+        initialSkills={skills}
+        locale={locale}
+        initialCategory={initialCategory}
+        title={title}
+        subtitle={subtitle}
+      />
 
       <Footer />
     </div>
