@@ -1,5 +1,6 @@
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { Category, Skill } from "@/data/skills";
+import { skills as staticSkills } from "@/data/skills";
 
 export interface D1Database {
   prepare(query: string): D1PreparedStatement;
@@ -39,17 +40,20 @@ interface TagRow {
   tag: string;
 }
 
-function getDB(): D1Database {
+function getDB(): D1Database | null {
   try {
-    const { env } = getCloudflareContext();
-    const db = (env as Record<string, unknown>).DB;
+    const context = getCloudflareContext();
+    const env = context.env as Record<string, unknown>;
+    const db = env.DB;
     if (!db) {
-      throw new Error("D1 database binding 'DB' not found");
+      console.warn("D1 database binding 'DB' not found, falling back to static data");
+      return null;
     }
     return db as D1Database;
   } catch (error) {
-    console.error("Failed to get D1 database:", error);
-    throw error;
+    // During build or in some dev environments, getCloudflareContext might fail
+    console.warn("getCloudflareContext failed, falling back to static data:", error instanceof Error ? error.message : String(error));
+    return null;
   }
 }
 
@@ -72,6 +76,9 @@ function rowToSkill(row: SkillRow, tags: string[] = []): Skill {
 
 export async function getSkillById(id: string): Promise<Skill | null> {
   const db = getDB();
+  if (!db) {
+    return staticSkills.find((s) => s.id === id) || null;
+  }
 
   const skillRow = await db
     .prepare("SELECT * FROM skills WHERE id = ?")
@@ -113,6 +120,23 @@ export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> 
     limit = 1000,
     offset = 0,
   } = params;
+
+  if (!db) {
+    let result = [...staticSkills];
+    if (category) result = result.filter((s) => s.category === category);
+    if (featured !== undefined) result = result.filter((s) => s.featured === featured);
+    if (official !== undefined) result = result.filter((s) => s.official === official);
+    if (tag) result = result.filter((s) => s.tags?.includes(tag));
+    if (search) {
+      const lowerSearch = search.toLowerCase();
+      result = result.filter(
+        (s) =>
+          s.name.toLowerCase().includes(lowerSearch) ||
+          s.description.toLowerCase().includes(lowerSearch)
+      );
+    }
+    return result.slice(offset, offset + limit);
+  }
 
   let query = "SELECT DISTINCT s.* FROM skills s";
   const bindings: unknown[] = [];
