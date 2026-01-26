@@ -4,7 +4,7 @@ import { SkillsPageClient } from "@/components/SkillsPageClient";
 import { SiteHeader } from "@/components/SiteHeader";
 import { Footer } from "@/components/Footer";
 import { SITE_URL } from "@/lib/seo";
-import { getSkills } from "@/lib/d1";
+import { getSkills, getSkillsCount } from "@/lib/d1";
 
 const VALID_CATEGORIES: (Category | "all" | "featured")[] = [
   "all",
@@ -29,6 +29,12 @@ function getFirstParam(value: string | string[] | undefined): string | undefined
   return value;
 }
 
+function toPositiveInt(value: string | undefined, fallback: number): number {
+  if (!value) return fallback;
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
 export default async function SkillsPage({
   params,
   searchParams,
@@ -40,15 +46,28 @@ export default async function SkillsPage({
   setRequestLocale(locale);
   const resolvedSearchParams = searchParams ? await Promise.resolve(searchParams) : undefined;
   const categoryParam = resolvedSearchParams ? getFirstParam(resolvedSearchParams.category) : undefined;
+  const pageParam = resolvedSearchParams ? getFirstParam(resolvedSearchParams.page) : undefined;
+  const page = toPositiveInt(pageParam, 1);
+  const pageSize = 24;
   const initialCategory = categoryParam && VALID_CATEGORIES.includes(categoryParam as Category | "all" | "featured")
     ? (categoryParam as Category | "all" | "featured")
     : "all";
-  const skills = await getSkills();
+  const baseParams = initialCategory === "featured"
+    ? { featured: true }
+    : initialCategory === "all"
+      ? {}
+      : { category: initialCategory as Category };
+  const totalCount = await getSkillsCount(baseParams);
+  const skills = await getSkills({
+    ...baseParams,
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
+  });
   const title = locale === "zh" ? "发现 Agent Skills" : "Discover Agent Skills";
   const subtitle =
     locale === "zh"
-      ? `浏览 ${skills.length}+ 个技能，增强你的 AI Agent 能力`
-      : `Browse ${skills.length}+ skills to enhance your AI agent`;
+      ? `浏览 ${totalCount}+ 个技能，增强你的 AI Agent 能力`
+      : `Browse ${totalCount}+ skills to enhance your AI agent`;
   // ItemList structured data for SEO
   const skillsListJsonLd = {
     "@context": "https://schema.org",
@@ -79,6 +98,9 @@ export default async function SkillsPage({
         initialSkills={skills}
         locale={locale}
         initialCategory={initialCategory}
+        page={page}
+        pageSize={pageSize}
+        totalCount={totalCount}
         title={title}
         subtitle={subtitle}
       />

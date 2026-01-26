@@ -2,7 +2,7 @@ import { getCloudflareContext } from "@opennextjs/cloudflare";
 import type { Category, Skill } from "@/data/skills";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "@/db/schema";
-import { eq, and, or, like, desc, asc, inArray } from "drizzle-orm";
+import { eq, and, or, like, desc, asc, inArray, sql } from "drizzle-orm";
 
 function getDB() {
   // 1. 预检查：如果在构建阶段，直接返回 null。
@@ -131,26 +131,38 @@ export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> 
     offset,
   });
 
-  const skillsWithTags = await Promise.all(
-    skillResults.map(async (s) => {
-      const tags = await db.query.skillTags.findMany({
-        where: eq(schema.skillTags.skillId, s.id),
-      });
-      return {
-        ...s,
-        descriptionZh: s.descriptionZh || undefined,
-        content: s.content || undefined,
-        contentZh: s.contentZh || undefined,
-        author: s.author || undefined,
-        category: s.category as Category,
-        featured: s.featured === 1,
-        official: s.official === 1,
-        tags: tags.length > 0 ? tags.map((t) => t.tag) : undefined,
-      };
-    })
-  );
+  if (skillResults.length === 0) {
+    return [];
+  }
 
-  return skillsWithTags;
+  const skillIds = skillResults.map((s) => s.id);
+  const tagResults = await db.query.skillTags.findMany({
+    where: inArray(schema.skillTags.skillId, skillIds),
+  });
+  const tagsBySkillId = new Map<string, string[]>();
+  for (const tag of tagResults) {
+    const existing = tagsBySkillId.get(tag.skillId);
+    if (existing) {
+      existing.push(tag.tag);
+    } else {
+      tagsBySkillId.set(tag.skillId, [tag.tag]);
+    }
+  }
+
+  return skillResults.map((s) => {
+    const tags = tagsBySkillId.get(s.id);
+    return {
+      ...s,
+      descriptionZh: s.descriptionZh || undefined,
+      content: s.content || undefined,
+      contentZh: s.contentZh || undefined,
+      author: s.author || undefined,
+      category: s.category as Category,
+      featured: s.featured === 1,
+      official: s.official === 1,
+      tags: tags && tags.length > 0 ? tags : undefined,
+    };
+  });
 }
 
 export async function getAllSkills(): Promise<Skill[]> {
@@ -173,6 +185,60 @@ export async function searchSkills(query: string): Promise<Skill[]> {
   return getSkills({ search: query });
 }
 
+export async function getSkillsCount(params: GetSkillsParams = {}): Promise<number> {
+  const db = getDB();
+  if (!db) return 0;
+
+  const {
+    category,
+    featured,
+    official,
+    tag,
+    search,
+  } = params;
+
+  const whereConditions = [];
+
+  if (category) {
+    whereConditions.push(eq(schema.skills.category, category));
+  }
+  if (featured !== undefined) {
+    whereConditions.push(eq(schema.skills.featured, featured ? 1 : 0));
+  }
+  if (official !== undefined) {
+    whereConditions.push(eq(schema.skills.official, official ? 1 : 0));
+  }
+  if (search) {
+    const searchPattern = `%${search}%`;
+    whereConditions.push(
+      or(
+        like(schema.skills.name, searchPattern),
+        like(schema.skills.description, searchPattern),
+        like(schema.skills.descriptionZh, searchPattern)
+      )
+    );
+  }
+
+  if (tag) {
+    const taggedSkills = await db.query.skillTags.findMany({
+      where: eq(schema.skillTags.tag, tag),
+    });
+    const skillIds = taggedSkills.map(ts => ts.skillId);
+    if (skillIds.length === 0) return 0;
+    whereConditions.push(inArray(schema.skills.id, skillIds));
+  }
+
+  const countQuery = db
+    .select({ count: sql<number>`count(*)` })
+    .from(schema.skills);
+
+  const results = whereConditions.length > 0
+    ? await countQuery.where(and(...whereConditions))
+    : await countQuery;
+
+  return Number(results[0]?.count ?? 0);
+}
+
 export async function getRelatedSkills(skillId: string, limit = 3): Promise<Skill[]> {
   const skill = await getSkillById(skillId);
   if (!skill) return [];
@@ -184,4 +250,3 @@ export async function getRelatedSkills(skillId: string, limit = 3): Promise<Skil
 
   return relatedSkills.filter((s) => s.id !== skillId).slice(0, limit);
 }
-

@@ -1,17 +1,18 @@
 "use client";
 
+import { Link } from "@/i18n/navigation";
 import { categories } from "@/data/categories";
 import type { Category } from "@/data/skills";
 
 interface CategoryTabsProps {
   activeCategory: Category | "all" | "featured";
-  onCategoryChange: (category: Category | "all" | "featured") => void;
+  buildHref: (category: Category | "all" | "featured") => string;
   locale: string;
 }
 
 export function CategoryTabs({
   activeCategory,
-  onCategoryChange,
+  buildHref,
   locale,
 }: CategoryTabsProps) {
   const allLabel = locale === "zh" ? "全部" : "All";
@@ -19,8 +20,8 @@ export function CategoryTabs({
 
   return (
     <div className="flex flex-wrap gap-2">
-      <button
-        onClick={() => onCategoryChange("all")}
+      <Link
+        href={buildHref("all")}
         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
           activeCategory === "all"
             ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
@@ -28,9 +29,9 @@ export function CategoryTabs({
         }`}
       >
         {allLabel}
-      </button>
-      <button
-        onClick={() => onCategoryChange("featured")}
+      </Link>
+      <Link
+        href={buildHref("featured")}
         className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
           activeCategory === "featured"
             ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
@@ -38,11 +39,11 @@ export function CategoryTabs({
         }`}
       >
         ⭐ {featuredLabel}
-      </button>
+      </Link>
       {categories.map((cat) => (
-        <button
+        <Link
           key={cat.id}
-          onClick={() => onCategoryChange(cat.id)}
+          href={buildHref(cat.id)}
           className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
             activeCategory === cat.id
               ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
@@ -50,7 +51,7 @@ export function CategoryTabs({
           }`}
         >
           {cat.icon} {locale === "zh" ? cat.nameZh : cat.name}
-        </button>
+        </Link>
       ))}
     </div>
   );

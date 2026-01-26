@@ -4,7 +4,7 @@ import { Link } from "@/i18n/navigation";
 import { Footer } from "@/components/Footer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkillCard } from "@/components/SkillCard";
-import { getFeaturedSkills, getAllSkills } from "@/lib/d1";
+import { getSkills, getSkillsCount } from "@/lib/d1";
 import type { Locale } from "@/i18n/routing";
 import {
   buildAlternates,
@@ -62,8 +62,8 @@ export default async function HomePage({
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
-  const featuredSkills = (await getFeaturedSkills()).slice(0, 6);
-  const allSkills = await getAllSkills();
+  const featuredSkills = await getSkills({ featured: true, limit: 6 });
+  const totalCount = await getSkillsCount();
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
@@ -102,7 +102,7 @@ export default async function HomePage({
                 {t("featuredSkills")}
               </h2>
               <p className="text-zinc-600 dark:text-zinc-400 mt-1">
-                {t("discoverSkills", { count: allSkills.length })}
+                {t("discoverSkills", { count: totalCount })}
               </p>
             </div>
             <Link

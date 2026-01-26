@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { DetailTabs } from "@/components/DetailTabs";
@@ -8,8 +9,9 @@ import { GitHubRepoTree } from "@/components/GitHubRepoTree";
 import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkillCard } from "@/components/SkillCard";
+import type { Skill } from "@/data/skills";
 import { getCategoryById } from "@/data/categories";
-import { getSkillById, getRelatedSkills } from "@/lib/d1";
+import { getSkillById, getSkills } from "@/lib/d1";
 import type { Locale } from "@/i18n/routing";
 import {
   buildAlternates,
@@ -23,6 +25,8 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const getSkillCached = cache(async (id: string): Promise<Skill | null> => getSkillById(id));
+
 export async function generateMetadata({
   params,
 }: {
@@ -30,7 +34,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, id } = await params;
   const typedLocale = locale as Locale;
-  const skill = await getSkillById(id);
+  const skill = await getSkillCached(id);
 
   if (!skill) {
     return {};
@@ -79,13 +83,18 @@ export default async function SkillDetailPage({
   const typedLocale = locale as Locale;
   setRequestLocale(locale);
 
-  const skill = await getSkillById(id);
+  const skill = await getSkillCached(id);
   if (!skill) {
     notFound();
   }
 
   const category = getCategoryById(skill.category);
-  const relatedSkills = await getRelatedSkills(skill.id, 3);
+  const relatedSkills = (await getSkills({
+    category: skill.category,
+    limit: 4,
+  }))
+    .filter((s) => s.id !== skill.id)
+    .slice(0, 3);
   const description = locale === "zh" ? skill.descriptionZh || skill.description : skill.description;
   const overviewContent = locale === "zh" ? skill.contentZh || skill.content : skill.content;
   const skillUrl = buildUrl(typedLocale, `/skills/${skill.id}`).toString();
