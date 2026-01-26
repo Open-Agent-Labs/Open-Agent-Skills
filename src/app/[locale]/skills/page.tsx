@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useSearchParams } from "next/navigation";
-import { skills, getFeaturedSkills, type Category } from "@/data/skills";
+import type { Category, Skill } from "@/data/skills";
 import { SkillCard } from "@/components/SkillCard";
 import { CategoryTabs } from "@/components/CategoryTabs";
 import { SearchInput } from "@/components/SearchInput";
@@ -31,6 +31,28 @@ export default function SkillsPage() {
 
   const [activeCategory, setActiveCategory] = useState<Category | "all" | "featured">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [skills, setSkills] = useState<Skill[]>([]);
+  const [filteredSkills, setFilteredSkills] = useState<Skill[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch skills from API
+  useEffect(() => {
+    async function fetchSkills() {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/skills");
+        if (response.ok) {
+          const data = await response.json();
+          setSkills(data);
+        }
+      } catch (error) {
+        console.error("Failed to fetch skills:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchSkills();
+  }, []);
 
   // Read category from URL on mount and when searchParams change
   useEffect(() => {
@@ -40,11 +62,12 @@ export default function SkillsPage() {
     }
   }, [searchParams]);
 
-  const filteredSkills = useMemo(() => {
+  // Filter skills based on category and search query
+  useEffect(() => {
     let result = skills;
 
     if (activeCategory === "featured") {
-      result = getFeaturedSkills();
+      result = skills.filter((s) => s.featured);
     } else if (activeCategory !== "all") {
       result = skills.filter((s) => s.category === activeCategory);
     }
@@ -59,11 +82,10 @@ export default function SkillsPage() {
           s.tags?.some((tag) => tag.toLowerCase().includes(query))
         );
       });
-
     }
 
-    return result;
-  }, [activeCategory, searchQuery, locale]);
+    setFilteredSkills(result);
+  }, [skills, activeCategory, searchQuery, locale]);
 
   const title = locale === "zh" ? "发现 Agent Skills" : "Discover Agent Skills";
   const subtitle =
@@ -128,7 +150,14 @@ export default function SkillsPage() {
             />
           </div>
 
-          {filteredSkills.length > 0 ? (
+          {loading ? (
+            <div className="text-center py-16">
+              <div className="text-6xl mb-4">⏳</div>
+              <p className="text-zinc-600 dark:text-zinc-400">
+                {locale === "zh" ? "加载中..." : "Loading..."}
+              </p>
+            </div>
+          ) : filteredSkills.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredSkills.map((skill) => (
                 <SkillCard key={skill.id} skill={skill} locale={locale} />

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations } from "next-intl/server";
 import type { Locale } from "@/i18n/routing";
-import { skills } from "@/data/skills";
+import { getAllSkills } from "@/lib/d1";
 import {
   buildAlternates,
   buildUrl,
@@ -20,8 +20,9 @@ export async function generateMetadata({
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "skills" });
   const typedLocale = locale as Locale;
+  const allSkills = await getAllSkills();
   const title = formatTitle(t("title"));
-  const description = t("subtitle", { count: skills.length });
+  const description = t("subtitle", { count: allSkills.length });
 
   return {
     title,

@@ -9,7 +9,7 @@ import { MarkdownRenderer } from "@/components/MarkdownRenderer";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SkillCard } from "@/components/SkillCard";
 import { getCategoryById } from "@/data/categories";
-import { skills, getSkillById, getRelatedSkills } from "@/data/skills";
+import { getAllSkills, getSkillById, getRelatedSkills } from "@/lib/d1";
 import type { Locale } from "@/i18n/routing";
 import {
   buildAlternates,
@@ -21,8 +21,9 @@ import {
   SITE_NAME,
 } from "@/lib/seo";
 
-export function generateStaticParams() {
-  return skills.map((skill) => ({ id: skill.id }));
+export async function generateStaticParams() {
+  const allSkills = await getAllSkills();
+  return allSkills.map((skill) => ({ id: skill.id }));
 }
 
 export async function generateMetadata({
@@ -32,7 +33,7 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { locale, id } = await params;
   const typedLocale = locale as Locale;
-  const skill = getSkillById(id);
+  const skill = await getSkillById(id);
 
   if (!skill) {
     return {};
@@ -81,13 +82,13 @@ export default async function SkillDetailPage({
   const typedLocale = locale as Locale;
   setRequestLocale(locale);
 
-  const skill = getSkillById(id);
+  const skill = await getSkillById(id);
   if (!skill) {
     notFound();
   }
 
   const category = getCategoryById(skill.category);
-  const relatedSkills = getRelatedSkills(skill.id, 3);
+  const relatedSkills = await getRelatedSkills(skill.id, 3);
   const description = locale === "zh" ? skill.descriptionZh || skill.description : skill.description;
   const overviewContent = locale === "zh" ? skill.contentZh || skill.content : skill.content;
   const skillUrl = buildUrl(typedLocale, `/skills/${skill.id}`).toString();
