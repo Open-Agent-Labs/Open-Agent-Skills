@@ -18,21 +18,21 @@ export function SiteHeader({ current }: SiteHeaderProps) {
 
   const navItemClasses = (isActive: boolean): string =>
     isActive
-      ? "text-zinc-900 dark:text-white font-medium"
-      : "text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-white transition-colors";
+      ? "text-slate-900 dark:text-slate-50 font-semibold"
+      : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-50 transition-colors duration-200";
 
   const mobileNavItemClasses = (isActive: boolean): string =>
     isActive
-      ? "block px-4 py-3 text-zinc-900 dark:text-white font-medium bg-zinc-100 dark:bg-zinc-800 rounded-lg"
-      : "block px-4 py-3 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors";
+      ? "block px-4 py-3 text-slate-900 dark:text-slate-50 font-semibold bg-slate-100 dark:bg-slate-800 rounded-lg"
+      : "block px-4 py-3 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors duration-200";
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/80 dark:bg-zinc-950/80 border-b border-zinc-200 dark:border-zinc-800">
+    <header className="fixed top-0 left-0 right-0 z-50 backdrop-blur-md bg-white/90 dark:bg-slate-900/90 border-b border-slate-200 dark:border-slate-800">
       <nav className="max-w-6xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-8">
           <Link
             href="/"
-            className="font-bold text-xl text-zinc-900 dark:text-white"
+            className="font-bold text-xl text-slate-900 dark:text-slate-50 tracking-tight"
           >
             Open Agent Skills
           </Link>
@@ -67,7 +67,7 @@ export function SiteHeader({ current }: SiteHeaderProps) {
             href="https://github.com/Open-Agent-Labs/Open-Agent-Skills"
             target="_blank"
             rel="noopener noreferrer"
-            className="w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200 cursor-pointer"
             aria-label="GitHub"
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
@@ -78,7 +78,7 @@ export function SiteHeader({ current }: SiteHeaderProps) {
           {/* Mobile Menu Button */}
           <button
             type="button"
-            className="md:hidden w-9 h-9 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+            className="md:hidden w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors duration-200 cursor-pointer"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label={mobileMenuOpen ? "Close menu" : "Open menu"}
             aria-expanded={mobileMenuOpen}
@@ -98,7 +98,7 @@ export function SiteHeader({ current }: SiteHeaderProps) {
 
       {/* Mobile Navigation Menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-zinc-200 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md">
+        <div className="md:hidden border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md">
           <div className="px-4 py-4 space-y-2">
             <Link
               href="/"

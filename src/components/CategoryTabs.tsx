@@ -22,20 +22,20 @@ export function CategoryTabs({
     <div className="flex flex-wrap gap-2">
       <Link
         href={buildHref("all")}
-        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-200 cursor-pointer ${
           activeCategory === "all"
-            ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-            : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            ? "bg-slate-900 text-white dark:bg-slate-50 dark:text-slate-900"
+            : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         }`}
       >
         {allLabel}
       </Link>
       <Link
         href={buildHref("featured")}
-        className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+        className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-200 cursor-pointer ${
           activeCategory === "featured"
-            ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-            : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            ? "bg-slate-900 text-white dark:bg-slate-50 dark:text-slate-900"
+            : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
         }`}
       >
         ⭐ {featuredLabel}
@@ -44,10 +44,10 @@ export function CategoryTabs({
         <Link
           key={cat.id}
           href={buildHref(cat.id)}
-          className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-colors duration-200 cursor-pointer ${
             activeCategory === cat.id
-              ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-              : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+              ? "bg-slate-900 text-white dark:bg-slate-50 dark:text-slate-900"
+              : "bg-slate-100 text-slate-700 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
           }`}
         >
           {cat.icon} {locale === "zh" ? cat.nameZh : cat.name}

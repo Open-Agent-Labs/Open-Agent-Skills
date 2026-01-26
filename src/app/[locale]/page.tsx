@@ -66,27 +66,27 @@ export default async function HomePage({
   const totalCount = await getSkillsCount();
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-zinc-50 to-white dark:from-zinc-950 dark:to-zinc-900">
+    <div className="min-h-screen bg-linear-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900">
       <SiteHeader current="home" />
 
       <main className="pt-32 pb-20">
         <section className="max-w-6xl mx-auto px-6 text-center">
-          <h1 className="text-5xl md:text-6xl font-bold text-zinc-900 dark:text-white mb-6 tracking-tight">
+          <h1 className="text-5xl md:text-6xl font-bold text-slate-900 dark:text-slate-50 mb-6 tracking-tight">
             {t("title")}
           </h1>
-          <p className="text-xl text-zinc-600 dark:text-zinc-400 mb-10 max-w-2xl mx-auto">
+          <p className="text-xl text-slate-600 dark:text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
             {t("subtitle")}
           </p>
           <div className="flex flex-wrap justify-center gap-4">
             <Link
               href="/skills"
-              className="px-8 py-3 bg-zinc-900 text-white rounded-full font-medium hover:bg-zinc-800 transition-colors dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-100"
+              className="px-8 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors duration-200 shadow-sm cursor-pointer"
             >
               {t("browseSkills")}
             </Link>
             <Link
               href="/docs/introduction"
-              className="px-8 py-3 border border-zinc-300 rounded-full font-medium text-zinc-700 hover:bg-zinc-50 transition-colors dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800"
+              className="px-8 py-3 border-2 border-slate-300 rounded-lg font-semibold text-slate-700 hover:bg-slate-50 transition-colors duration-200 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800 cursor-pointer"
             >
               {t("getStarted")}
             </Link>
@@ -98,22 +98,22 @@ export default async function HomePage({
         <section className="max-w-6xl mx-auto px-6 mt-20">
           <div className="flex items-center justify-between mb-8">
             <div>
-              <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white">
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-50">
                 {t("featuredSkills")}
               </h2>
-              <p className="text-zinc-600 dark:text-zinc-400 mt-1">
+              <p className="text-slate-600 dark:text-slate-400 mt-1">
                 {t("discoverSkills", { count: totalCount })}
               </p>
             </div>
             <Link
               href="/skills"
-              className="hidden sm:inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              className="hidden sm:inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-semibold cursor-pointer"
             >
               {t("viewAll")}
               <span>→</span>
             </Link>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
             {featuredSkills.map((skill) => (
               <SkillCard key={skill.id} skill={skill} locale={locale} />
             ))}
@@ -121,7 +121,7 @@ export default async function HomePage({
           <div className="mt-6 text-center sm:hidden">
             <Link
               href="/skills"
-              className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-medium"
+              className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline font-semibold cursor-pointer"
             >
               {t("viewAllSkills")}
               <span>→</span>
@@ -130,18 +130,18 @@ export default async function HomePage({
         </section>
 
         <section className="max-w-6xl mx-auto px-6 mt-20">
-          <div className="bg-zinc-50 dark:bg-zinc-900 rounded-2xl p-8 md:p-12 border border-zinc-200 dark:border-zinc-800">
-            <h2 className="text-2xl md:text-3xl font-bold text-zinc-900 dark:text-white mb-4">
+          <div className="bg-slate-50 dark:bg-slate-900/50 rounded-2xl p-8 md:p-12 border border-slate-200 dark:border-slate-800">
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-50 mb-4">
               {t("whyTitle")}
             </h2>
-            <p className="text-lg text-zinc-600 dark:text-zinc-400 max-w-3xl">
+            <p className="text-lg text-slate-600 dark:text-slate-400 max-w-3xl leading-relaxed">
               {t("whyDescription")}
             </p>
           </div>
         </section>
 
         <section className="max-w-6xl mx-auto px-6 mt-16">
-          <h2 className="text-3xl font-bold text-center text-zinc-900 dark:text-white mb-12">
+          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-slate-50 mb-12">
             {t("features.title")}
           </h2>
           <div className="grid md:grid-cols-2 gap-6">
@@ -185,7 +185,7 @@ export default async function HomePage({
         </section>
 
         <section className="max-w-6xl mx-auto px-6 mt-24">
-          <h2 className="text-3xl font-bold text-center text-zinc-900 dark:text-white mb-12">
+          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-slate-50 mb-12">
             {t("getStartedTitle")}
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
@@ -208,7 +208,7 @@ export default async function HomePage({
         </section>
 
         <section className="max-w-4xl mx-auto px-6 mt-24">
-          <h2 className="text-3xl font-bold text-center text-zinc-900 dark:text-white mb-12">
+          <h2 className="text-3xl font-bold text-center text-slate-900 dark:text-slate-50 mb-12">
             {t("faq.title")}
           </h2>
           <div className="space-y-4">
@@ -255,14 +255,14 @@ function FeatureCard({
   icon: React.ReactNode;
 }) {
   return (
-    <div className="p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
-      <div className="w-12 h-12 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4">
+    <div className="p-6 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200">
+      <div className="w-12 h-12 rounded-lg bg-blue-50 dark:bg-blue-900/30 flex items-center justify-center text-blue-600 dark:text-blue-400 mb-4">
         {icon}
       </div>
-      <h3 className="text-xl font-semibold text-zinc-900 dark:text-white mb-2">
+      <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-50 mb-2">
         {title}
       </h3>
-      <p className="text-zinc-600 dark:text-zinc-400">{description}</p>
+      <p className="text-slate-600 dark:text-slate-400 leading-relaxed">{description}</p>
     </div>
   );
 }
@@ -279,13 +279,13 @@ function GetStartedCard({
   return (
     <Link
       href={href}
-      className="group p-6 rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-blue-300 dark:hover:border-blue-700 transition-all hover:shadow-lg"
+      className="group p-6 rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 hover:shadow-lg cursor-pointer"
     >
-      <h3 className="text-lg font-semibold text-zinc-900 dark:text-white mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+      <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 mb-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
         {title}
         <span className="inline-block ml-2 transition-transform group-hover:translate-x-1">→</span>
       </h3>
-      <p className="text-sm text-zinc-600 dark:text-zinc-400">{description}</p>
+      <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{description}</p>
     </Link>
   );
 }
@@ -298,13 +298,13 @@ function FAQItem({
   answer: string;
 }) {
   return (
-    <details className="group rounded-2xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors">
+    <details className="group rounded-2xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 transition-all duration-200 cursor-pointer">
       <summary className="flex items-center justify-between p-6 cursor-pointer list-none">
-        <h3 className="text-lg font-semibold text-zinc-900 dark:text-white pr-4">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-50 pr-4">
           {question}
         </h3>
         <svg
-          className="w-5 h-5 text-zinc-500 dark:text-zinc-400 transition-transform group-open:rotate-180 flex-shrink-0"
+          className="w-5 h-5 text-slate-500 dark:text-slate-400 transition-transform group-open:rotate-180 flex-shrink-0"
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -312,7 +312,7 @@ function FAQItem({
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
         </svg>
       </summary>
-      <div className="px-6 pb-6 text-zinc-600 dark:text-zinc-400 leading-relaxed">
+      <div className="px-6 pb-6 text-slate-600 dark:text-slate-400 leading-relaxed">
         {answer}
       </div>
     </details>
