@@ -15,6 +15,17 @@ export interface ParsedRepoInfo {
   branch: string;
 }
 
+export interface GitHubRepoMeta {
+  stars: number;
+  forks: number;
+  openIssues: number;
+  watchers: number;
+  defaultBranch: string;
+  language: string | null;
+  license: string | null;
+  updatedAt: string;
+}
+
 export function parseGitHubUrl(url: string): ParsedRepoInfo | null {
   try {
     const urlObj = new URL(url);
@@ -173,4 +184,39 @@ export function sortTreeItems(items: GitHubTreeItem[]): GitHubTreeItem[] {
     if (a.type === "file" && b.type === "dir") return 1;
     return a.name.localeCompare(b.name);
   });
+}
+
+export async function fetchRepoMeta(owner: string, repo: string, token?: string): Promise<GitHubRepoMeta> {
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
+
+  const headers: HeadersInit = {
+    Accept: "application/vnd.github.v3+json",
+    "User-Agent": "Open-Agent-Skills",
+  };
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
+  const response = await fetch(apiUrl, {
+    headers,
+    next: { revalidate: 300 }, // Cache for 5 minutes
+  });
+
+  if (!response.ok) {
+    throw new Error(`GitHub API error: ${response.status}`);
+  }
+
+  const data = await response.json();
+
+  return {
+    stars: data.stargazers_count || 0,
+    forks: data.forks_count || 0,
+    openIssues: data.open_issues_count || 0,
+    watchers: data.watchers_count || 0,
+    defaultBranch: data.default_branch || "main",
+    language: data.language || null,
+    license: data.license?.name || null,
+    updatedAt: data.updated_at || data.pushed_at || "",
+  };
 }

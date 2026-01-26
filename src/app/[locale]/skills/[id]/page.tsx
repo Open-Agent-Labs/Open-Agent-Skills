@@ -13,6 +13,7 @@ import type { Skill } from "@/data/skills";
 import { getCategoryById } from "@/data/categories";
 import { getSkillById, getSkills } from "@/lib/d1";
 import type { Locale } from "@/i18n/routing";
+import { parseGitHubUrl, fetchRepoMeta } from "@/lib/github";
 import {
   buildAlternates,
   buildUrl,
@@ -118,6 +119,18 @@ export default async function SkillDetailPage({
   };
 
   const isZh = locale === "zh";
+
+  // Fetch GitHub repo metadata
+  let repoMeta = null;
+  const parsedRepo = parseGitHubUrl(skill.repository);
+  if (parsedRepo) {
+    try {
+      repoMeta = await fetchRepoMeta(parsedRepo.owner, parsedRepo.repo, process.env.GITHUB_TOKEN);
+    } catch (error) {
+      console.error("Failed to fetch repo meta:", error);
+    }
+  }
+
   const breadcrumbJsonLd = {
     "@context": "https://schema.org",
     "@type": "BreadcrumbList",
@@ -200,14 +213,55 @@ cp -r ${skill.id} ~/.config/claude/skills/`;
                   </div>
 
                   {skill.author && (
-                    <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                      @{skill.author}
-                    </span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="w-5 h-5 rounded-full bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center overflow-hidden border border-zinc-200 dark:border-zinc-700">
+                        <svg className="w-3 h-3 text-zinc-500" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                        </svg>
+                      </div>
+                      <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                        {skill.author}
+                      </span>
+                    </div>
                   )}
 
                   <p className="text-zinc-600 dark:text-zinc-400 leading-relaxed mt-3 text-sm md:text-base">
                     {description}
                   </p>
+
+                  {repoMeta && (
+                    <div className="flex flex-wrap items-center gap-y-3 gap-x-6 mt-6 pt-6 border-t border-zinc-100 dark:border-zinc-800">
+                      <div className="flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400" title={isZh ? "Star 数量" : "Stars"}>
+                        <svg className="w-4.5 h-4.5 text-amber-500" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                        </svg>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">{repoMeta.stars.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400" title={isZh ? "Fork 数量" : "Forks"}>
+                        <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h8a2 2 0 012 2v9a2 2 0 01-2 2H8a2 2 0 01-2-2V9a2 2 0 012-2z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V5a2 2 0 012-2h4a2 2 0 012 2v2M12 11v4" />
+                        </svg>
+                        <span className="font-semibold text-zinc-900 dark:text-zinc-100">{repoMeta.forks.toLocaleString()}</span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400">
+                        <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span>
+                          {isZh ? "更新于" : "Updated"} {new Date(repoMeta.updatedAt).toLocaleDateString(locale, { year: 'numeric', month: 'short', day: 'numeric' })}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-sm text-zinc-500 dark:text-zinc-400">
+                        <svg className="w-4.5 h-4.5" fill="currentColor" viewBox="0 0 24 24">
+                          <path fillRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clipRule="evenodd" />
+                        </svg>
+                        <Link href={skill.repository} target="_blank" className="font-medium hover:text-blue-500 transition-colors truncate max-w-[200px]">
+                          {parsedRepo ? `${parsedRepo.owner}/${parsedRepo.repo}` : skill.repository}
+                        </Link>
+                      </div>
+                    </div>
+                  )}
 
                 </div>
               </div>
