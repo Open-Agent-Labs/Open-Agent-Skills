@@ -1,0 +1,50 @@
+@baseUrl = http://localhost:3000/api
+@authToken = YOUR_TOKEN_HERE
+
+### 获取所有技能
+GET {{baseUrl}}/skills
+Accept: application/json
+
+### 根据 ID 获取技能详情
+GET {{baseUrl}}/skills/docx
+Accept: application/json
+
+### 创建新技能 (不传 id，系统会自动根据 name 生成 slug 作为 id)
+POST {{baseUrl}}/skills
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "New Awesome Skill",
+  "description": "A detailed description of the skill in English.",
+  "descriptionZh": "该技能的中文详细描述。",
+  "category": "productivity",
+  "repository": "https://github.com/username/repo",
+  "author": "Author Name",
+  "tags": ["AI", "Helper", "Tool"],
+  "featured": true,
+  "official": false
+}
+
+### 更新技能 (提供 id 即可触发更新)
+POST {{baseUrl}}/skills
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "id": "new-awesome-skill",
+  "name": "Updated Skill Name",
+  "description": "Updated English description.",
+  "descriptionZh": "更新后的中文描述。",
+  "category": "development",
+  "repository": "https://github.com/username/repo",
+  "author": "Author Name",
+  "tags": ["AI", "Updated"],
+  "featured": false,
+  "official": true
+}
+
+### 删除技能
+DELETE {{baseUrl}}/skills/new-awesome-skill
+Authorization: Bearer {{authToken}}
+Accept: application/json

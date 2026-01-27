@@ -250,3 +250,74 @@ export async function getRelatedSkills(skillId: string, limit = 3): Promise<Skil
 
   return relatedSkills.filter((s) => s.id !== skillId).slice(0, limit);
 }
+
+export async function upsertSkill(skill: Skill): Promise<Skill | null> {
+  const db = getDB();
+  if (!db) return null;
+
+  const { tags, featured, official, ...skillData } = skill;
+
+  try {
+    return await db.transaction(async (tx) => {
+      // 1. Upsert skill
+      await tx
+        .insert(schema.skills)
+        .values({
+          ...skillData,
+          featured: featured ? 1 : 0,
+          official: official ? 1 : 0,
+          updatedAt: sql`CURRENT_TIMESTAMP`,
+        })
+        .onConflictDoUpdate({
+          target: schema.skills.id,
+          set: {
+            ...skillData,
+            featured: featured ? 1 : 0,
+            official: official ? 1 : 0,
+            updatedAt: sql`CURRENT_TIMESTAMP`,
+          },
+        });
+
+      // 2. Sync tags
+      if (tags) {
+        // Delete existing tags
+        await tx
+          .delete(schema.skillTags)
+          .where(eq(schema.skillTags.skillId, skill.id));
+
+        // Insert new tags
+        if (tags.length > 0) {
+          await tx.insert(schema.skillTags).values(
+            tags.map((tag) => ({
+              skillId: skill.id,
+              tag,
+            }))
+          );
+        }
+      }
+
+      // 3. Return the updated skill
+      return getSkillById(skill.id);
+    });
+  } catch (error) {
+    console.error(`Error upserting skill ${skill.id}:`, error);
+    throw error;
+  }
+}
+
+export async function deleteSkill(id: string): Promise<boolean> {
+  const db = getDB();
+  if (!db) return false;
+
+  try {
+    const result = await db
+      .delete(schema.skills)
+      .where(eq(schema.skills.id, id));
+    
+    // In D1/SQLite with Drizzle, the result might vary, but we can check if it executed
+    return true;
+  } catch (error) {
+    console.error(`Error deleting skill ${id}:`, error);
+    throw error;
+  }
+}
