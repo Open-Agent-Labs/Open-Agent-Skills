@@ -4,6 +4,10 @@ import { drizzle } from "drizzle-orm/d1";
 import * as schema from "@/db/schema";
 import { eq, and, or, like, desc, asc, inArray, sql } from "drizzle-orm";
 
+/**
+ * 获取 D1 数据库实例
+ * @returns Drizzle ORM 数据库实例或 null（当数据库不可用时）
+ */
 function getDB() {
   // 1. 预检查：如果在构建阶段，直接返回 null。
   // 在 Next.js 构建阶段，D1 绑定通常不可用，且 getCloudflareContext 会抛错。
@@ -33,6 +37,11 @@ function getDB() {
   }
 }
 
+/**
+ * 根据 ID 获取单个技能
+ * @param id 技能ID
+ * @returns 技能对象或 null
+ */
 export async function getSkillById(id: string): Promise<Skill | null> {
   const db = getDB();
   if (!db) {
@@ -67,16 +76,24 @@ export async function getSkillById(id: string): Promise<Skill | null> {
   };
 }
 
+/**
+ * 获取技能列表查询参数接口
+ */
 export interface GetSkillsParams {
-  category?: Category;
-  featured?: boolean;
-  official?: boolean;
-  tag?: string;
-  search?: string;
-  limit?: number;
-  offset?: number;
+  category?: Category; // 按分类筛选
+  featured?: boolean; // 按精选状态筛选
+  official?: boolean; // 按官方状态筛选
+  tag?: string; // 按标签筛选
+  search?: string; // 关键词搜索（名称、描述）
+  limit?: number; // 返回数量限制
+  offset?: number; // 分页偏移量
 }
 
+/**
+ * 获取技能列表（支持多种筛选和分页）
+ * @param params 查询参数
+ * @returns 技能列表
+ */
 export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> {
   const db = getDB();
   if (!db) return [];
@@ -113,7 +130,7 @@ export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> 
     );
   }
 
-  // Handle tag filtering separately
+  // 单独处理标签筛选：先查询包含该标签的技能 ID
   if (tag) {
     const taggedSkills = await db.query.skillTags.findMany({
       where: eq(schema.skillTags.tag, tag),
@@ -165,26 +182,53 @@ export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> 
   });
 }
 
+/**
+ * 获取所有技能
+ * @returns 全部技能列表
+ */
 export async function getAllSkills(): Promise<Skill[]> {
   return getSkills({ limit: 10000 });
 }
 
+/**
+ * 获取精选技能
+ * @returns 精选技能列表
+ */
 export async function getFeaturedSkills(): Promise<Skill[]> {
   return getSkills({ featured: true });
 }
 
+/**
+ * 获取官方技能
+ * @returns 官方技能列表
+ */
 export async function getOfficialSkills(): Promise<Skill[]> {
   return getSkills({ official: true });
 }
 
+/**
+ * 根据分类获取技能
+ * @param category 分类ID
+ * @returns 该分类下的技能列表
+ */
 export async function getSkillsByCategory(category: Category): Promise<Skill[]> {
   return getSkills({ category });
 }
 
+/**
+ * 搜索技能（模糊匹配名称和描述）
+ * @param query 搜索关键词
+ * @returns 匹配的技能列表
+ */
 export async function searchSkills(query: string): Promise<Skill[]> {
   return getSkills({ search: query });
 }
 
+/**
+ * 获取符合条件的技能总数
+ * @param params 查询参数
+ * @returns 技能总数
+ */
 export async function getSkillsCount(params: GetSkillsParams = {}): Promise<number> {
   const db = getDB();
   if (!db) return 0;
@@ -239,6 +283,12 @@ export async function getSkillsCount(params: GetSkillsParams = {}): Promise<numb
   return Number(results[0]?.count ?? 0);
 }
 
+/**
+ * 获取相关技能（同分类下的其他技能）
+ * @param skillId 技能ID
+ * @param limit 返回数量限制，默认 3
+ * @returns 相关技能列表
+ */
 export async function getRelatedSkills(skillId: string, limit = 3): Promise<Skill[]> {
   const skill = await getSkillById(skillId);
   if (!skill) return [];
@@ -251,6 +301,12 @@ export async function getRelatedSkills(skillId: string, limit = 3): Promise<Skil
   return relatedSkills.filter((s) => s.id !== skillId).slice(0, limit);
 }
 
+/**
+ * 创建或更新技能（Upsert 操作）
+ * 使用事务确保数据一致性
+ * @param skill 技能对象
+ * @returns 更新后的技能对象或 null
+ */
 export async function upsertSkill(skill: Skill): Promise<Skill | null> {
   const db = getDB();
   if (!db) return null;
@@ -259,7 +315,7 @@ export async function upsertSkill(skill: Skill): Promise<Skill | null> {
 
   try {
     return await db.transaction(async (tx) => {
-      // 1. Upsert skill
+      // 1. Upsert 技能数据（存在则更新，不存在则插入）
       await tx
         .insert(schema.skills)
         .values({
@@ -278,14 +334,14 @@ export async function upsertSkill(skill: Skill): Promise<Skill | null> {
           },
         });
 
-      // 2. Sync tags
+      // 2. 同步标签：删除旧标签并插入新标签
       if (tags) {
-        // Delete existing tags
+        // 删除现有标签
         await tx
           .delete(schema.skillTags)
           .where(eq(schema.skillTags.skillId, skill.id));
 
-        // Insert new tags
+        // 插入新标签
         if (tags.length > 0) {
           await tx.insert(schema.skillTags).values(
             tags.map((tag) => ({
@@ -296,7 +352,7 @@ export async function upsertSkill(skill: Skill): Promise<Skill | null> {
         }
       }
 
-      // 3. Return the updated skill
+      // 3. 返回更新后的技能对象
       return getSkillById(skill.id);
     });
   } catch (error) {
@@ -305,6 +361,11 @@ export async function upsertSkill(skill: Skill): Promise<Skill | null> {
   }
 }
 
+/**
+ * 删除技能
+ * @param id 技能ID
+ * @returns 是否成功删除
+ */
 export async function deleteSkill(id: string): Promise<boolean> {
   const db = getDB();
   if (!db) return false;

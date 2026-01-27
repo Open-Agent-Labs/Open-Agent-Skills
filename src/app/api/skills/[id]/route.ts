@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSkillById, deleteSkill } from "@/lib/d1";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
+/**
+ * 获取单个技能详情 API
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -28,6 +31,10 @@ export async function GET(
   }
 }
 
+/**
+ * 删除技能 API
+ * 需要 API Token 鉴权
+ */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -35,7 +42,7 @@ export async function DELETE(
   const { id } = await params;
 
   try {
-    // Check Authorization token
+    // 验证 Token
     const context = getCloudflareContext();
     const env = context.env as Record<string, any>;
     const apiToken = env.API_TOKEN;

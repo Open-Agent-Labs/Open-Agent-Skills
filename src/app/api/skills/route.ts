@@ -3,11 +3,16 @@ import { getSkills, type GetSkillsParams, upsertSkill } from "@/lib/d1";
 import type { Category, Skill } from "@/data/skills";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
+/**
+ * 获取技能列表 API
+ * 支持多种筛选和分页参数
+ */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
 
   const params: GetSkillsParams = {};
 
+  // 解析查询参数
   const category = searchParams.get("category");
   if (category) {
     params.category = category as Category;
@@ -55,9 +60,13 @@ export async function GET(request: NextRequest) {
   }
 }
 
+/**
+ * 创建/更新技能 API
+ * 需要 API Token 鉴权
+ */
 export async function POST(request: NextRequest) {
   try {
-    // Check Authorization token
+    // 验证 Token
     const context = getCloudflareContext();
     const env = context.env as Record<string, any>;
     const apiToken = env.API_TOKEN;
@@ -73,7 +82,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const { id, ...data } = body;
 
-    // Generate ID if not provided
+    // 如果没有提供 ID，根据名称生成
     const skillId = id || data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 
     const skill: Skill = {
@@ -81,6 +90,7 @@ export async function POST(request: NextRequest) {
       id: skillId,
     };
 
+    // 执行 Upsert 操作
     const updatedSkill = await upsertSkill(skill);
 
     if (!updatedSkill) {

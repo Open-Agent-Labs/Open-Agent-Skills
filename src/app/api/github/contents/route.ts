@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 
+/**
+ * 获取 GitHub 仓库目录内容 API
+ * 返回文件和目录列表
+ */
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const owner = searchParams.get("owner");
@@ -19,11 +23,13 @@ export async function GET(request: NextRequest) {
     branch ? `?ref=${branch}` : ""
   }`;
 
+  // 设置请求头
   const headers: HeadersInit = {
     Accept: "application/vnd.github.v3+json",
     "User-Agent": "Open-Agent-Skills",
   };
 
+  // 优先使用 Cloudflare 环境变量中的 Token
   let token = process.env.GITHUB_TOKEN;
   try {
     const context = getCloudflareContext();
@@ -32,7 +38,7 @@ export async function GET(request: NextRequest) {
       token = env.GITHUB_TOKEN;
     }
   } catch (e) {
-    // Fallback to process.env
+    // 回退到 process.env
   }
 
   if (token) {
@@ -42,6 +48,7 @@ export async function GET(request: NextRequest) {
   try {
     let response = await fetch(url, { headers, next: { revalidate: 3600 } });
 
+    // 404 错误时尝试使用 master 分支
     if (!response.ok && response.status === 404) {
       const masterUrl = url.replace(`ref=${branch}`, "ref=master");
       response = await fetch(masterUrl, { headers, next: { revalidate: 3600 } });
@@ -55,6 +62,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
+    // 确保返回数组格式
     return NextResponse.json(Array.isArray(data) ? data : [data]);
   } catch (error) {
     console.error("GitHub API error:", error);

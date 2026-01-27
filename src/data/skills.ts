@@ -1,30 +1,42 @@
+/**
+ * 技能分类类型
+ * 定义所有可用的技能分类
+ */
 export type Category =
-  | "document-processing"
-  | "development"
-  | "data-analysis"
-  | "business-marketing"
-  | "communication"
-  | "creative-media"
-  | "productivity"
-  | "collaboration"
-  | "security";
+  | "document-processing" // 文档处理
+  | "development" // 开发工具
+  | "data-analysis" // 数据分析
+  | "business-marketing" // 商业营销
+  | "communication" // 沟通写作
+  | "creative-media" // 创意与媒体
+  | "productivity" // 效率工具
+  | "collaboration" // 协作管理
+  | "security"; // 安全系统
 
+/**
+ * 技能数据结构
+ * 定义单个 Agent Skill 的完整信息
+ */
 export interface Skill {
-  id: string;
-  name: string;
-  description: string;
-  descriptionZh?: string;
-  content?: string;
-  contentZh?: string;
-  category: Category;
-  repository: string;
-  author?: string;
-  tags?: string[];
-  featured?: boolean;
-  official?: boolean;
-  createdAt?: string;
+  id: string; // 技能唯一标识符
+  name: string; // 技能名称
+  description: string; // 英文简述
+  descriptionZh?: string; // 中文简述
+  content?: string; // 英文详细内容（Markdown）
+  contentZh?: string; // 中文详细内容（Markdown）
+  category: Category; // 所属分类
+  repository: string; // GitHub 仓库地址
+  author?: string; // 作者名称
+  tags?: string[]; // 标签列表
+  featured?: boolean; // 是否为精选技能
+  official?: boolean; // 是否为官方技能
+  createdAt?: string; // 创建时间
 }
 
+/**
+ * 技能数据列表
+ * 仅用于本地开发和数据导入，生产环境从 D1 数据库读取
+ */
 export const skills: Skill[] = [
   // ==================== Document Processing ====================
   {

@@ -1,31 +1,45 @@
+/**
+ * GitHub 文件树项目接口
+ */
 export interface GitHubTreeItem {
-  name: string;
-  path: string;
-  type: "file" | "dir";
-  sha: string;
-  size?: number;
-  download_url?: string | null;
-  html_url?: string;
+  name: string; // 文件/目录名称
+  path: string; // 完整路径
+  type: "file" | "dir"; // 类型：文件或目录
+  sha: string; // Git SHA 值
+  size?: number; // 文件大小（字节）
+  download_url?: string | null; // 下载链接
+  html_url?: string; // GitHub 页面链接
 }
 
+/**
+ * 解析后的仓库信息
+ */
 export interface ParsedRepoInfo {
-  owner: string;
-  repo: string;
-  path: string;
-  branch: string;
+  owner: string; // 仓库所有者
+  repo: string; // 仓库名称
+  path: string; // 文件/目录路径
+  branch: string; // 分支名
 }
 
+/**
+ * GitHub 仓库元数据
+ */
 export interface GitHubRepoMeta {
-  stars: number;
-  forks: number;
-  openIssues: number;
-  watchers: number;
-  defaultBranch: string;
-  language: string | null;
-  license: string | null;
-  updatedAt: string;
+  stars: number; // Star 数
+  forks: number; // Fork 数
+  openIssues: number; // 未关闭 issue 数
+  watchers: number; // Watch 数
+  defaultBranch: string; // 默认分支
+  language: string | null; // 主要编程语言
+  license: string | null; // 许可证
+  updatedAt: string; // 最后更新时间
 }
 
+/**
+ * 解析 GitHub URL 提取仓库信息
+ * @param url GitHub 仓库 URL
+ * @returns 解析后的仓库信息或 null
+ */
 export function parseGitHubUrl(url: string): ParsedRepoInfo | null {
   try {
     const urlObj = new URL(url);
@@ -58,6 +72,15 @@ export function parseGitHubUrl(url: string): ParsedRepoInfo | null {
   }
 }
 
+/**
+ * 获取 GitHub 仓库目录内容
+ * @param owner 仓库所有者
+ * @param repo 仓库名称
+ * @param path 目录路径，默认为根目录
+ * @param branch 分支名，默认 main
+ * @param token GitHub Token（可选）
+ * @returns 文件树项目列表
+ */
 export async function fetchRepoContents(
   owner: string,
   repo: string,
@@ -80,6 +103,7 @@ export async function fetchRepoContents(
   const response = await fetch(url, { headers, next: { revalidate: 3600 } });
 
   if (!response.ok) {
+    // 404 错误时尝试使用 master 分支
     if (response.status === 404) {
       const masterUrl = url.replace(`ref=${branch}`, "ref=master");
       const masterResponse = await fetch(masterUrl, {
@@ -98,6 +122,15 @@ export async function fetchRepoContents(
   return Array.isArray(data) ? data : [data];
 }
 
+/**
+ * 获取 GitHub 文件内容
+ * @param owner 仓库所有者
+ * @param repo 仓库名称
+ * @param path 文件路径
+ * @param branch 分支名，默认 main
+ * @param token GitHub Token（可选）
+ * @returns 文件内容文本
+ */
 export async function fetchFileContent(
   owner: string,
   repo: string,
@@ -115,6 +148,7 @@ export async function fetchFileContent(
   const response = await fetch(url, { headers, next: { revalidate: 3600 } });
 
   if (!response.ok) {
+    // 404 错误时尝试使用 master 分支
     if (response.status === 404) {
       const masterUrl = url.replace(`/${branch}/`, "/master/");
       const masterResponse = await fetch(masterUrl, {
@@ -131,11 +165,21 @@ export async function fetchFileContent(
   return response.text();
 }
 
+/**
+ * 获取文件扩展名
+ * @param filename 文件名
+ * @returns 文件扩展名（小写）
+ */
 export function getFileExtension(filename: string): string {
   const ext = filename.split(".").pop()?.toLowerCase() || "";
   return ext;
 }
 
+/**
+ * 根据文件扩展名获取编程语言
+ * @param ext 文件扩展名
+ * @returns 语言标识符（用于语法高亮）
+ */
 export function getLanguageFromExtension(ext: string): string {
   const languageMap: Record<string, string> = {
     ts: "typescript",
@@ -178,6 +222,11 @@ export function getLanguageFromExtension(ext: string): string {
   return languageMap[ext] || "text";
 }
 
+/**
+ * 对文件树项目排序（目录优先，然后按名称字母顺序）
+ * @param items 文件树项目列表
+ * @returns 排序后的项目列表
+ */
 export function sortTreeItems(items: GitHubTreeItem[]): GitHubTreeItem[] {
   return [...items].sort((a, b) => {
     if (a.type === "dir" && b.type === "file") return -1;
@@ -186,6 +235,13 @@ export function sortTreeItems(items: GitHubTreeItem[]): GitHubTreeItem[] {
   });
 }
 
+/**
+ * 获取 GitHub 仓库元数据
+ * @param owner 仓库所有者
+ * @param repo 仓库名称
+ * @param token GitHub Token（可选）
+ * @returns 仓库元数据
+ */
 export async function fetchRepoMeta(owner: string, repo: string, token?: string): Promise<GitHubRepoMeta> {
   const apiUrl = `https://api.github.com/repos/${owner}/${repo}`;
 

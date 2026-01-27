@@ -1,14 +1,20 @@
 import type { Category } from "./skills";
 
+/**
+ * 分类配置接口
+ */
 export interface CategoryConfig {
-  id: Category;
-  name: string;
-  nameZh: string;
-  icon: string;
-  description: string;
-  descriptionZh: string;
+  id: Category; // 分类ID
+  name: string; // 英文名称
+  nameZh: string; // 中文名称
+  icon: string; // 图标 Emoji
+  description: string; // 英文描述
+  descriptionZh: string; // 中文描述
 }
 
+/**
+ * 所有技能分类定义
+ */
 export const categories: CategoryConfig[] = [
   {
     id: "development",
@@ -84,10 +90,21 @@ export const categories: CategoryConfig[] = [
   },
 ];
 
+/**
+ * 根据 ID 获取分类配置
+ * @param id 分类ID
+ * @returns 分类配置或 undefined
+ */
 export function getCategoryById(id: Category): CategoryConfig | undefined {
   return categories.find((cat) => cat.id === id);
 }
 
+/**
+ * 获取分类名称（根据语言）
+ * @param id 分类ID
+ * @param locale 语言代码
+ * @returns 对应语言的分类名称
+ */
 export function getCategoryName(id: Category, locale: string): string {
   const category = getCategoryById(id);
   if (!category) return id;
