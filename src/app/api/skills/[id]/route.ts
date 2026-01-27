@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSkillById, deleteSkill } from "@/lib/d1";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
+import { startApiLog, endApiLog, logError } from "@/lib/logger";
 
 /**
  * 获取单个技能详情 API
@@ -9,25 +11,23 @@ export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = await startApiLog(request);
   const { id } = await params;
 
   try {
     const skill = await getSkillById(id);
 
     if (!skill) {
-      return NextResponse.json(
-        { error: "Skill not found" },
-        { status: 404 }
-      );
+      endApiLog(request, startTime, 200, { id });
+      return errorResponse("Skill not found", ErrorCode.NOT_FOUND);
     }
 
-    return NextResponse.json(skill);
+    endApiLog(request, startTime, 200, { id });
+    return successResponse(skill, "Skill fetched successfully");
   } catch (error) {
-    console.error(`Error fetching skill ${id} from D1:`, error);
-    return NextResponse.json(
-      { error: "Failed to fetch skill" },
-      { status: 500 }
-    );
+    logError(request, error, { id });
+    endApiLog(request, startTime, 200);
+    return errorResponse("Failed to fetch skill", ErrorCode.INTERNAL_ERROR);
   }
 }
 
@@ -39,6 +39,7 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const startTime = await startApiLog(request);
   const { id } = await params;
 
   try {
@@ -49,27 +50,22 @@ export async function DELETE(
     const authHeader = request.headers.get("Authorization");
 
     if (!apiToken || authHeader !== `Bearer ${apiToken}`) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
+      endApiLog(request, startTime, 200, { reason: "Invalid token", id });
+      return errorResponse("Unauthorized", ErrorCode.UNAUTHORIZED);
     }
 
     const success = await deleteSkill(id);
 
     if (!success) {
-      return NextResponse.json(
-        { error: "Failed to delete skill" },
-        { status: 500 }
-      );
+      endApiLog(request, startTime, 200, { id, reason: "Delete failed" });
+      return errorResponse("Failed to delete skill", ErrorCode.INTERNAL_ERROR);
     }
 
-    return NextResponse.json({ success: true });
+    endApiLog(request, startTime, 200, { id });
+    return successResponse({ id }, "Skill deleted successfully");
   } catch (error) {
-    console.error(`Error deleting skill ${id} from D1:`, error);
-    return NextResponse.json(
-      { error: "Internal Server Error" },
-      { status: 500 }
-    );
+    logError(request, error, { id, operation: "delete skill" });
+    endApiLog(request, startTime, 200);
+    return errorResponse("Internal Server Error", ErrorCode.INTERNAL_ERROR);
   }
 }

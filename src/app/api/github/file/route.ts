@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { errorResponse, ErrorCode } from "@/lib/api-response";
+import { startApiLog, endApiLog, logError } from "@/lib/logger";
 
 /**
  * 获取 GitHub 文件内容 API
  * 直接从 raw.githubusercontent.com 获取文件内容
  */
 export async function GET(request: NextRequest) {
+  const startTime = await startApiLog(request);
   const searchParams = request.nextUrl.searchParams;
   const owner = searchParams.get("owner");
   const repo = searchParams.get("repo");
@@ -13,10 +16,8 @@ export async function GET(request: NextRequest) {
   const branch = searchParams.get("branch") || "main";
 
   if (!owner || !repo || !path) {
-    return NextResponse.json(
-      { error: "Missing required parameters" },
-      { status: 400 }
-    );
+    endApiLog(request, startTime, 200, { reason: "Missing parameters" });
+    return errorResponse("Missing required parameters", ErrorCode.BAD_REQUEST);
   }
 
   const url = `https://raw.githubusercontent.com/${owner}/${repo}/${branch}/${path}`;
@@ -52,22 +53,22 @@ export async function GET(request: NextRequest) {
     }
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: `Failed to fetch file: ${response.status}` },
-        { status: response.status }
+      endApiLog(request, startTime, 200, { owner, repo, path, branch });
+      return errorResponse(
+        `Failed to fetch file: ${response.status}`,
+        ErrorCode.BAD_GATEWAY
       );
     }
 
     const content = await response.text();
-    // 返回纯文本内容
+    endApiLog(request, startTime, 200, { owner, repo, path, branch, size: content.length });
+    // 返回纯文本内容（不使用统一格式）
     return new NextResponse(content, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (error) {
-    console.error("GitHub file fetch error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch file from GitHub" },
-      { status: 500 }
-    );
+    logError(request, error, { owner, repo, path, branch });
+    endApiLog(request, startTime, 200);
+    return errorResponse("Failed to fetch file from GitHub", ErrorCode.INTERNAL_ERROR);
   }
 }

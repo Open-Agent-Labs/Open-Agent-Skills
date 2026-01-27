@@ -77,6 +77,42 @@ export async function getSkillById(id: string): Promise<Skill | null> {
 }
 
 /**
+ * 根据 name 获取单个技能
+ * @param name 技能名称
+ * @returns 技能对象或 null
+ */
+export async function getSkillByName(name: string): Promise<Skill | null> {
+  const db = getDB();
+  if (!db) {
+    return null;
+  }
+
+  const result = await db.query.skills.findFirst({
+    where: eq(schema.skills.name, name),
+  });
+
+  if (!result) {
+    return null;
+  }
+
+  const tags = await db.query.skillTags.findMany({
+    where: eq(schema.skillTags.skillId, result.id),
+  });
+
+  return {
+    ...result,
+    descriptionZh: result.descriptionZh || undefined,
+    content: result.content || undefined,
+    contentZh: result.contentZh || undefined,
+    author: result.author || undefined,
+    category: result.category as Category,
+    featured: result.featured === 1,
+    official: result.official === 1,
+    tags: tags.length > 0 ? tags.map((t) => t.tag) : undefined,
+  };
+}
+
+/**
  * 获取技能列表查询参数接口
  */
 export interface GetSkillsParams {
@@ -314,47 +350,46 @@ export async function upsertSkill(skill: Skill): Promise<Skill | null> {
   const { tags, featured, official, ...skillData } = skill;
 
   try {
-    return await db.transaction(async (tx) => {
-      // 1. Upsert 技能数据（存在则更新，不存在则插入）
-      await tx
-        .insert(schema.skills)
-        .values({
+    // 注意：Cloudflare D1 不支持 db.transaction()，需要手动执行多个操作
+    // 1. Upsert 技能数据（存在则更新，不存在则插入）
+    await db
+      .insert(schema.skills)
+      .values({
+        ...skillData,
+        featured: featured ? 1 : 0,
+        official: official ? 1 : 0,
+        updatedAt: sql`CURRENT_TIMESTAMP`,
+      })
+      .onConflictDoUpdate({
+        target: schema.skills.id,
+        set: {
           ...skillData,
           featured: featured ? 1 : 0,
           official: official ? 1 : 0,
           updatedAt: sql`CURRENT_TIMESTAMP`,
-        })
-        .onConflictDoUpdate({
-          target: schema.skills.id,
-          set: {
-            ...skillData,
-            featured: featured ? 1 : 0,
-            official: official ? 1 : 0,
-            updatedAt: sql`CURRENT_TIMESTAMP`,
-          },
-        });
+        },
+      });
 
-      // 2. 同步标签：删除旧标签并插入新标签
-      if (tags) {
-        // 删除现有标签
-        await tx
-          .delete(schema.skillTags)
-          .where(eq(schema.skillTags.skillId, skill.id));
+    // 2. 同步标签：删除旧标签并插入新标签
+    if (tags) {
+      // 删除现有标签
+      await db
+        .delete(schema.skillTags)
+        .where(eq(schema.skillTags.skillId, skill.id));
 
-        // 插入新标签
-        if (tags.length > 0) {
-          await tx.insert(schema.skillTags).values(
-            tags.map((tag) => ({
-              skillId: skill.id,
-              tag,
-            }))
-          );
-        }
+      // 插入新标签
+      if (tags.length > 0) {
+        await db.insert(schema.skillTags).values(
+          tags.map((tag) => ({
+            skillId: skill.id,
+            tag,
+          }))
+        );
       }
+    }
 
-      // 3. 返回更新后的技能对象
-      return getSkillById(skill.id);
-    });
+    // 3. 返回更新后的技能对象
+    return getSkillById(skill.id);
   } catch (error) {
     console.error(`Error upserting skill ${skill.id}:`, error);
     throw error;

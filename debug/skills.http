@@ -1,5 +1,5 @@
 @baseUrl = http://localhost:3000/api
-@authToken = YOUR_TOKEN_HERE
+@authToken = zley
 
 ### 获取所有技能
 GET {{baseUrl}}/skills
@@ -9,20 +9,20 @@ Accept: application/json
 GET {{baseUrl}}/skills/docx
 Accept: application/json
 
-### 创建新技能 (不传 id，系统会自动根据 name 生成 slug 作为 id)
+### 创建新技能 (使用逗号分割的字符串格式 tags)
 POST {{baseUrl}}/skills
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "name": "New Awesome Skill",
-  "description": "A detailed description of the skill in English.",
-  "descriptionZh": "该技能的中文详细描述。",
-  "category": "productivity",
-  "repository": "https://github.com/username/repo",
-  "author": "Author Name",
-  "tags": ["AI", "Helper", "Tool"],
-  "featured": true,
+  "name": "我是名字哈哈",
+  "description": "A skill with tags as comma-separated string.",
+  "descriptionZh": "使用逗号分割字符串格式的标签。",
+  "category": "automation",
+  "repository": "https://github.com/username/string-tags-skill",
+  "author": "Test Author",
+  "tags": "AI, Automation, Productivity, Testing",
+  "featured": false,
   "official": false
 }
 
@@ -44,7 +44,25 @@ Content-Type: application/json
   "official": true
 }
 
+### 更新技能 (使用逗号分割的字符串格式 tags)
+POST {{baseUrl}}/skills
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "id": "string-tags-skill",
+  "name": "Updated String Tags Skill",
+  "description": "Updated description with string tags.",
+  "descriptionZh": "更新后的描述，使用字符串格式标签。",
+  "category": "automation",
+  "repository": "https://github.com/username/string-tags-skill",
+  "author": "Test Author",
+  "tags": "AI, Machine Learning, Deep Learning",
+  "featured": true,
+  "official": false
+}
+
 ### 删除技能
-DELETE {{baseUrl}}/skills/new-awesome-skill
+DELETE {{baseUrl}}/skills/我是名字
 Authorization: Bearer {{authToken}}
 Accept: application/json

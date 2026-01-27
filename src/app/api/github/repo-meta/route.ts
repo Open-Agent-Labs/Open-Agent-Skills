@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { parseGitHubUrl } from "@/lib/github";
+import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
+import { startApiLog, endApiLog, logError } from "@/lib/logger";
 
 export const runtime = "edge";
 
@@ -23,6 +25,7 @@ interface GitHubRepoMeta {
  * 支持通过 URL 或 owner/repo 参数查询
  */
 export async function GET(request: NextRequest) {
+  const startTime = await startApiLog(request);
   const searchParams = request.nextUrl.searchParams;
   const url = searchParams.get("url");
   const owner = searchParams.get("owner");
@@ -35,20 +38,16 @@ export async function GET(request: NextRequest) {
   if (url && !owner && !repo) {
     const parsed = parseGitHubUrl(url);
     if (!parsed) {
-      return NextResponse.json(
-        { error: "Invalid GitHub URL" },
-        { status: 400 }
-      );
+      endApiLog(request, startTime, 200, { reason: "Invalid URL", url });
+      return errorResponse("Invalid GitHub URL", ErrorCode.BAD_REQUEST);
     }
     repoOwner = parsed.owner;
     repoName = parsed.repo;
   }
 
   if (!repoOwner || !repoName) {
-    return NextResponse.json(
-      { error: "Missing owner or repo parameter" },
-      { status: 400 }
-    );
+    endApiLog(request, startTime, 200, { reason: "Missing parameters" });
+    return errorResponse("Missing owner or repo parameter", ErrorCode.BAD_REQUEST);
   }
 
   const apiUrl = `https://api.github.com/repos/${repoOwner}/${repoName}`;
@@ -82,9 +81,10 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: `GitHub API error: ${response.status}` },
-        { status: response.status }
+      endApiLog(request, startTime, 200, { owner: repoOwner, repo: repoName });
+      return errorResponse(
+        `GitHub API error: ${response.status}`,
+        ErrorCode.BAD_GATEWAY
       );
     }
 
@@ -102,16 +102,14 @@ export async function GET(request: NextRequest) {
       updatedAt: data.updated_at || data.pushed_at || "",
     };
 
-    return NextResponse.json(meta, {
-      headers: {
-        "Cache-Control": "public, max-age=300, stale-while-revalidate=3600",
-      },
-    });
+    endApiLog(request, startTime, 200, { owner: repoOwner, repo: repoName, stars: meta.stars });
+    return successResponse(meta, "Repository metadata fetched successfully");
   } catch (error) {
-    console.error("GitHub repo meta fetch error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch repository metadata from GitHub" },
-      { status: 500 }
+    logError(request, error, { owner: repoOwner, repo: repoName });
+    endApiLog(request, startTime, 200);
+    return errorResponse(
+      "Failed to fetch repository metadata from GitHub",
+      ErrorCode.INTERNAL_ERROR
     );
   }
 }

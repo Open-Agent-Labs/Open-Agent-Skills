@@ -1,11 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
+import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
+import { startApiLog, endApiLog, logError } from "@/lib/logger";
 
 /**
  * 获取 GitHub 仓库目录内容 API
  * 返回文件和目录列表
  */
 export async function GET(request: NextRequest) {
+  const startTime = await startApiLog(request);
   const searchParams = request.nextUrl.searchParams;
   const owner = searchParams.get("owner");
   const repo = searchParams.get("repo");
@@ -13,10 +16,8 @@ export async function GET(request: NextRequest) {
   const branch = searchParams.get("branch") || "main";
 
   if (!owner || !repo) {
-    return NextResponse.json(
-      { error: "Missing owner or repo parameter" },
-      { status: 400 }
-    );
+    endApiLog(request, startTime, 200, { reason: "Missing parameters" });
+    return errorResponse("Missing owner or repo parameter", ErrorCode.BAD_REQUEST);
   }
 
   const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}${
@@ -55,20 +56,24 @@ export async function GET(request: NextRequest) {
     }
 
     if (!response.ok) {
-      return NextResponse.json(
-        { error: `GitHub API error: ${response.status}` },
-        { status: response.status }
+      endApiLog(request, startTime, 200, { owner, repo, path, branch });
+      return errorResponse(
+        `GitHub API error: ${response.status}`,
+        ErrorCode.BAD_GATEWAY
       );
     }
 
     const data = await response.json();
+    const resultCount = Array.isArray(data) ? data.length : 1;
+    endApiLog(request, startTime, 200, { owner, repo, path, branch, count: resultCount });
     // 确保返回数组格式
-    return NextResponse.json(Array.isArray(data) ? data : [data]);
-  } catch (error) {
-    console.error("GitHub API error:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch from GitHub" },
-      { status: 500 }
+    return successResponse(
+      Array.isArray(data) ? data : [data],
+      "GitHub contents fetched successfully"
     );
+  } catch (error) {
+    logError(request, error, { owner, repo, path, branch });
+    endApiLog(request, startTime, 200);
+    return errorResponse("Failed to fetch from GitHub", ErrorCode.INTERNAL_ERROR);
   }
 }
