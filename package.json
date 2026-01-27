@@ -34,6 +34,7 @@
     "shiki": "^3.21.0"
   },
   "devDependencies": {
+    "@libsql/client": "^0.17.0",
     "@opennextjs/cloudflare": "^1.14.8",
     "@tailwindcss/postcss": "^4",
     "@types/mdx": "^2.0.13",
