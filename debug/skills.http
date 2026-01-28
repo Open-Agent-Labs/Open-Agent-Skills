@@ -28,24 +28,6 @@ Content-Type: application/json
   "official": false
 }
 
-### 更新技能 (提供 id 即可触发更新)
-POST {{baseUrl}}/skills
-Authorization: Bearer {{authToken}}
-Content-Type: application/json
-
-{
-  "id": "new-awesome-skill",
-  "name": "Updated Skill Name",
-  "description": "Updated English description.",
-  "descriptionZh": "更新后的中文描述。",
-  "category": "development",
-  "repository": "https://github.com/username/repo",
-  "author": "Author Name",
-  "tags": ["AI", "Updated"],
-  "featured": false,
-  "official": true
-}
-
 ### 更新技能 (使用逗号分割的字符串格式 tags)
 # 注意：需要提供真实的 UUID，可从创建响应中获取
 POST {{baseUrl}}/skills
@@ -53,7 +35,7 @@ Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+  "id": "f6409d38-cb8b-41c1-a040-64cd15f1c996",
   "name": "Updated String Tags Skill",
   "description": "Updated description with string tags.",
   "descriptionZh": "更新后的描述，使用字符串格式标签。",
