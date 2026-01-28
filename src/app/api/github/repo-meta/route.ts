@@ -38,7 +38,8 @@ export async function GET(request: NextRequest) {
   if (url && !owner && !repo) {
     const parsed = parseGitHubUrl(url);
     if (!parsed) {
-      endApiLog(request, startTime, 200, { reason: "Invalid URL", url });
+      const errorData = { code: ErrorCode.BAD_REQUEST, data: null, message: "Invalid GitHub URL" };
+      endApiLog(request, startTime, 200, errorData, { reason: "Invalid URL", url });
       return errorResponse("Invalid GitHub URL", ErrorCode.BAD_REQUEST);
     }
     repoOwner = parsed.owner;
@@ -46,7 +47,8 @@ export async function GET(request: NextRequest) {
   }
 
   if (!repoOwner || !repoName) {
-    endApiLog(request, startTime, 200, { reason: "Missing parameters" });
+    const errorData = { code: ErrorCode.BAD_REQUEST, data: null, message: "Missing owner or repo parameter" };
+    endApiLog(request, startTime, 200, errorData, { reason: "Missing parameters" });
     return errorResponse("Missing owner or repo parameter", ErrorCode.BAD_REQUEST);
   }
 
@@ -81,7 +83,8 @@ export async function GET(request: NextRequest) {
     });
 
     if (!response.ok) {
-      endApiLog(request, startTime, 200, { owner: repoOwner, repo: repoName });
+      const errorData = { code: ErrorCode.BAD_GATEWAY, data: null, message: `GitHub API error: ${response.status}` };
+      endApiLog(request, startTime, 200, errorData, { owner: repoOwner, repo: repoName });
       return errorResponse(
         `GitHub API error: ${response.status}`,
         ErrorCode.BAD_GATEWAY
@@ -102,11 +105,13 @@ export async function GET(request: NextRequest) {
       updatedAt: data.updated_at || data.pushed_at || "",
     };
 
-    endApiLog(request, startTime, 200, { owner: repoOwner, repo: repoName, stars: meta.stars });
+    const responseData = { code: 0, data: meta, message: "Repository metadata fetched successfully" };
+    endApiLog(request, startTime, 200, responseData, { owner: repoOwner, repo: repoName, stars: meta.stars });
     return successResponse(meta, "Repository metadata fetched successfully");
   } catch (error) {
     logError(request, error, { owner: repoOwner, repo: repoName });
-    endApiLog(request, startTime, 200);
+    const errorData = { code: ErrorCode.INTERNAL_ERROR, data: null, message: "Failed to fetch repository metadata from GitHub" };
+    endApiLog(request, startTime, 200, errorData);
     return errorResponse(
       "Failed to fetch repository metadata from GitHub",
       ErrorCode.INTERNAL_ERROR

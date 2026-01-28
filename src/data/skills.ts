@@ -19,6 +19,7 @@ export type Category =
  */
 export interface Skill {
   id: string; // 技能唯一标识符
+  slug?: string; // URL 友好的唯一标识符（用于路由）
   name: string; // 技能名称
   description: string; // 英文简述
   descriptionZh?: string; // 中文简述

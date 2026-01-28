@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
   const branch = searchParams.get("branch") || "main";
 
   if (!owner || !repo) {
-    endApiLog(request, startTime, 200, { reason: "Missing parameters" });
+    const errorData = { code: ErrorCode.BAD_REQUEST, data: null, message: "Missing owner or repo parameter" };
+    endApiLog(request, startTime, 200, errorData, { reason: "Missing parameters" });
     return errorResponse("Missing owner or repo parameter", ErrorCode.BAD_REQUEST);
   }
 
@@ -56,7 +57,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (!response.ok) {
-      endApiLog(request, startTime, 200, { owner, repo, path, branch });
+      const errorData = { code: ErrorCode.BAD_GATEWAY, data: null, message: `GitHub API error: ${response.status}` };
+      endApiLog(request, startTime, 200, errorData, { owner, repo, path, branch });
       return errorResponse(
         `GitHub API error: ${response.status}`,
         ErrorCode.BAD_GATEWAY
@@ -65,15 +67,14 @@ export async function GET(request: NextRequest) {
 
     const data = await response.json();
     const resultCount = Array.isArray(data) ? data.length : 1;
-    endApiLog(request, startTime, 200, { owner, repo, path, branch, count: resultCount });
-    // 确保返回数组格式
-    return successResponse(
-      Array.isArray(data) ? data : [data],
-      "GitHub contents fetched successfully"
-    );
+    const result = Array.isArray(data) ? data : [data];
+    const responseData = { code: 0, data: result, message: "GitHub contents fetched successfully" };
+    endApiLog(request, startTime, 200, responseData, { owner, repo, path, branch, count: resultCount });
+    return successResponse(result, "GitHub contents fetched successfully");
   } catch (error) {
     logError(request, error, { owner, repo, path, branch });
-    endApiLog(request, startTime, 200);
+    const errorData = { code: ErrorCode.INTERNAL_ERROR, data: null, message: "Failed to fetch from GitHub" };
+    endApiLog(request, startTime, 200, errorData);
     return errorResponse("Failed to fetch from GitHub", ErrorCode.INTERNAL_ERROR);
   }
 }

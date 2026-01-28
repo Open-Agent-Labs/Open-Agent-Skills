@@ -7,6 +7,7 @@ import { sql } from "drizzle-orm";
  */
 export const skills = sqliteTable("skills", {
   id: text("id").primaryKey().notNull(), // 技能唯一标识符
+  slug: text("slug").unique(), // URL 友好的唯一标识符（用于路由，可为空以兼容现有数据）
   name: text("name").notNull(), // 技能名称
   description: text("description").notNull(), // 英文描述
   descriptionZh: text("description_zh"), // 中文描述
@@ -24,6 +25,7 @@ export const skills = sqliteTable("skills", {
   index("idx_skills_category").on(table.category),
   index("idx_skills_featured").on(table.featured),
   index("idx_skills_official").on(table.official),
+  index("idx_skills_slug").on(table.slug), // slug 索引：加速按 slug 查询
 ]);
 
 /**

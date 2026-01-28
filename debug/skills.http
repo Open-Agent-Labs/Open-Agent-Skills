@@ -10,12 +10,14 @@ GET {{baseUrl}}/skills/docx
 Accept: application/json
 
 ### 创建新技能 (使用逗号分割的字符串格式 tags)
+# 注意：不传 id，系统会自动使用 UUID 生成
+# 注意：不传 slug，系统会根据 name 自动生成 URL 友好的 slug
 POST {{baseUrl}}/skills
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "name": "我是名字哈哈",
+  "name": "我是名字",
   "description": "A skill with tags as comma-separated string.",
   "descriptionZh": "使用逗号分割字符串格式的标签。",
   "category": "automation",
@@ -45,12 +47,13 @@ Content-Type: application/json
 }
 
 ### 更新技能 (使用逗号分割的字符串格式 tags)
+# 注意：需要提供真实的 UUID，可从创建响应中获取
 POST {{baseUrl}}/skills
 Authorization: Bearer {{authToken}}
 Content-Type: application/json
 
 {
-  "id": "string-tags-skill",
+  "id": "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
   "name": "Updated String Tags Skill",
   "description": "Updated description with string tags.",
   "descriptionZh": "更新后的描述，使用字符串格式标签。",
@@ -62,7 +65,38 @@ Content-Type: application/json
   "official": false
 }
 
-### 删除技能
+### 创建中文技能（测试 slug 拼音转换）
+# slug 将自动从中文名称生成拼音
+POST {{baseUrl}}/skills
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "name": "代码生成器",
+  "description": "An intelligent code generator that helps developers write code faster.",
+  "descriptionZh": "一个智能代码生成工具，帮助开发者更快地编写代码。",
+  "category": "development",
+  "repository": "https://github.com/example/code-generator",
+  "author": "张三",
+  "tags": "AI, 代码, 生产力",
+  "featured": true,
+  "official": false
+}
+
+### 删除技能 (通过 UUID)
+# 注意：需要提供真实的 UUID
+DELETE {{baseUrl}}/skills/我是名字
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 删除技能 (通过 slug)
+# 注意：slog 是根据 name 生成的 URL 友好标识符
+DELETE {{baseUrl}}/skills/我是名字
+Authorization: Bearer {{authToken}}
+Accept: application/json
+
+### 删除技能 (通过 name)
+# 注意：直接使用技能名称
 DELETE {{baseUrl}}/skills/我是名字
 Authorization: Bearer {{authToken}}
 Accept: application/json

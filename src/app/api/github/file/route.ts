@@ -16,7 +16,8 @@ export async function GET(request: NextRequest) {
   const branch = searchParams.get("branch") || "main";
 
   if (!owner || !repo || !path) {
-    endApiLog(request, startTime, 200, { reason: "Missing parameters" });
+    const errorData = { code: ErrorCode.BAD_REQUEST, data: null, message: "Missing required parameters" };
+    endApiLog(request, startTime, 200, errorData, { reason: "Missing parameters" });
     return errorResponse("Missing required parameters", ErrorCode.BAD_REQUEST);
   }
 
@@ -53,7 +54,8 @@ export async function GET(request: NextRequest) {
     }
 
     if (!response.ok) {
-      endApiLog(request, startTime, 200, { owner, repo, path, branch });
+      const errorData = { code: ErrorCode.BAD_GATEWAY, data: null, message: `Failed to fetch file: ${response.status}` };
+      endApiLog(request, startTime, 200, errorData, { owner, repo, path, branch });
       return errorResponse(
         `Failed to fetch file: ${response.status}`,
         ErrorCode.BAD_GATEWAY
@@ -61,14 +63,16 @@ export async function GET(request: NextRequest) {
     }
 
     const content = await response.text();
-    endApiLog(request, startTime, 200, { owner, repo, path, branch, size: content.length });
+    // 注意：这里返回纯文本，不是 JSON 格式，日志中不记录完整内容
+    endApiLog(request, startTime, 200, { success: true, contentLength: content.length }, { owner, repo, path, branch, size: content.length });
     // 返回纯文本内容（不使用统一格式）
     return new NextResponse(content, {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
     });
   } catch (error) {
     logError(request, error, { owner, repo, path, branch });
-    endApiLog(request, startTime, 200);
+    const errorData = { code: ErrorCode.INTERNAL_ERROR, data: null, message: "Failed to fetch file from GitHub" };
+    endApiLog(request, startTime, 200, errorData);
     return errorResponse("Failed to fetch file from GitHub", ErrorCode.INTERNAL_ERROR);
   }
 }

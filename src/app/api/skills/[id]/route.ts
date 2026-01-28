@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getSkillById, deleteSkill } from "@/lib/d1";
+import { getSkillById, getSkillBySlug, getSkillByName, deleteSkill } from "@/lib/d1";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
 import { startApiLog, endApiLog, logError } from "@/lib/logger";
@@ -18,15 +18,18 @@ export async function GET(
     const skill = await getSkillById(id);
 
     if (!skill) {
-      endApiLog(request, startTime, 200, { id });
+      const errorData = { code: ErrorCode.NOT_FOUND, data: null, message: "Skill not found" };
+      endApiLog(request, startTime, 200, errorData, { id });
       return errorResponse("Skill not found", ErrorCode.NOT_FOUND);
     }
 
-    endApiLog(request, startTime, 200, { id });
+    const responseData = { code: 0, data: skill, message: "Skill fetched successfully" };
+    endApiLog(request, startTime, 200, responseData, { id });
     return successResponse(skill, "Skill fetched successfully");
   } catch (error) {
     logError(request, error, { id });
-    endApiLog(request, startTime, 200);
+    const errorData = { code: ErrorCode.INTERNAL_ERROR, data: null, message: "Failed to fetch skill" };
+    endApiLog(request, startTime, 200, errorData);
     return errorResponse("Failed to fetch skill", ErrorCode.INTERNAL_ERROR);
   }
 }
@@ -34,13 +37,14 @@ export async function GET(
 /**
  * 删除技能 API
  * 需要 API Token 鉴权
+ * 支持通过 id、slug 或 name 删除
  */
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const startTime = await startApiLog(request);
-  const { id } = await params;
+  const { id: identifier } = await params;
 
   try {
     // 验证 Token
@@ -50,22 +54,47 @@ export async function DELETE(
     const authHeader = request.headers.get("Authorization");
 
     if (!apiToken || authHeader !== `Bearer ${apiToken}`) {
-      endApiLog(request, startTime, 200, { reason: "Invalid token", id });
+      const errorData = { code: ErrorCode.UNAUTHORIZED, data: null, message: "Unauthorized" };
+      endApiLog(request, startTime, 200, errorData, { reason: "Invalid token", identifier });
       return errorResponse("Unauthorized", ErrorCode.UNAUTHORIZED);
     }
 
-    const success = await deleteSkill(id);
+    // 尝试按不同方式查找技能：先按 id，然后按 slug，最后按 name
+    let skill = await getSkillById(identifier);
+    let searchType = "id";
+
+    if (!skill) {
+      skill = await getSkillBySlug(identifier);
+      searchType = "slug";
+    }
+
+    if (!skill) {
+      skill = await getSkillByName(identifier);
+      searchType = "name";
+    }
+
+    if (!skill) {
+      const errorData = { code: ErrorCode.NOT_FOUND, data: null, message: "Skill not found" };
+      endApiLog(request, startTime, 200, errorData, { identifier, reason: "Not found" });
+      return errorResponse("Skill not found", ErrorCode.NOT_FOUND);
+    }
+
+    // 使用找到的 skill.id 执行删除
+    const success = await deleteSkill(skill.id);
 
     if (!success) {
-      endApiLog(request, startTime, 200, { id, reason: "Delete failed" });
+      const errorData = { code: ErrorCode.INTERNAL_ERROR, data: null, message: "Failed to delete skill" };
+      endApiLog(request, startTime, 200, errorData, { identifier, skillId: skill.id, reason: "Delete failed" });
       return errorResponse("Failed to delete skill", ErrorCode.INTERNAL_ERROR);
     }
 
-    endApiLog(request, startTime, 200, { id });
-    return successResponse({ id }, "Skill deleted successfully");
+    const responseData = { code: 0, data: { id: skill.id, name: skill.name, slug: skill.slug }, message: "Skill deleted successfully" };
+    endApiLog(request, startTime, 200, responseData, { identifier, skillId: skill.id, searchType });
+    return successResponse({ id: skill.id, name: skill.name, slug: skill.slug }, "Skill deleted successfully");
   } catch (error) {
-    logError(request, error, { id, operation: "delete skill" });
-    endApiLog(request, startTime, 200);
+    logError(request, error, { identifier, operation: "delete skill" });
+    const errorData = { code: ErrorCode.INTERNAL_ERROR, data: null, message: "Internal Server Error" };
+    endApiLog(request, startTime, 200, errorData);
     return errorResponse("Internal Server Error", ErrorCode.INTERNAL_ERROR);
   }
 }

@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { randomUUID } from "crypto";
+import { pinyin } from "pinyin-pro";
 import {
   getSkills,
   type GetSkillsParams,
@@ -10,6 +12,28 @@ import type { Category, Skill } from "@/data/skills";
 import { getCloudflareContext } from "@opennextjs/cloudflare";
 import { successResponse, errorResponse, ErrorCode } from "@/lib/api-response";
 import { startApiLog, endApiLog, logError } from "@/lib/logger";
+
+/**
+ * 生成 URL 友好的 slug
+ * @param name 技能名称
+ * @returns slug 字符串
+ */
+function generateSlug(name: string): string {
+  // 将中文转换为拼音
+  const pinyinText = pinyin(name, { toneType: "none", type: "array" }).join("-");
+  
+  return pinyinText
+    .toLowerCase()
+    .trim()
+    // 替换空白字符为连字符
+    .replace(/\s+/g, "-")
+    // 移除特殊字符，只保留字母、数字和连字符
+    .replace(/[^a-z0-9\-]/g, "")
+    // 移除多余的连字符
+    .replace(/-+/g, "-")
+    // 移除首尾的连字符
+    .replace(/^-+|-+$/g, "");
+}
 
 /**
  * 获取技能列表 API
@@ -59,11 +83,13 @@ export async function GET(request: NextRequest) {
 
   try {
     const skills = await getSkills(params);
-    endApiLog(request, startTime, 200, { count: skills.length, params });
+    const responseData = { code: 0, data: skills, message: "Skills fetched successfully" };
+    endApiLog(request, startTime, 200, responseData, { count: skills.length, params });
     return successResponse(skills, "Skills fetched successfully");
   } catch (error) {
     logError(request, error, { params });
-    endApiLog(request, startTime, 200);
+    const errorData = { code: ErrorCode.INTERNAL_ERROR, data: null, message: "Failed to fetch skills" };
+    endApiLog(request, startTime, 200, errorData);
     return errorResponse("Failed to fetch skills", ErrorCode.INTERNAL_ERROR);
   }
 }
@@ -87,11 +113,12 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get("Authorization");
 
     if (!apiToken || authHeader !== `Bearer ${apiToken}`) {
-      endApiLog(request, startTime, 200, { reason: "Invalid token" });
+      const errorData = { code: ErrorCode.UNAUTHORIZED, data: null, message: "Unauthorized" };
+      endApiLog(request, startTime, 200, errorData, { reason: "Invalid token" });
       return errorResponse("Unauthorized", ErrorCode.UNAUTHORIZED);
     }
 
-    const { id, tags, ...data } = body;
+    const { id, tags, slug, ...data } = body;
 
     // 处理 tags：如果是字符串，使用逗号分割；如果是数组，直接使用；如果为空，设为 undefined
     let processedTags: string[] | undefined;
@@ -114,14 +141,18 @@ export async function POST(request: NextRequest) {
       processedTags = undefined;
     }
 
-    // 如果没有提供 ID，根据名称生成
-    const skillId = id || data.name.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+    // 如果没有提供 ID，使用 UUID 生成
+    const skillId = id || randomUUID();
+
+    // 处理 slug：如果没有提供，根据 name 生成
+    const skillSlug = slug || generateSlug(data.name);
 
     // 如果是新增操作（没有提供 id），检查 name 是否已存在
     if (!id) {
       const existingSkill = await getSkillByName(data.name);
       if (existingSkill) {
-        endApiLog(request, startTime, 200, { reason: "Duplicate name", name: data.name });
+        const errorData = { code: ErrorCode.CONFLICT, data: null, message: "A skill with this name already exists" };
+        endApiLog(request, startTime, 200, errorData, { reason: "Duplicate name", name: data.name });
         return errorResponse(
           "A skill with this name already exists",
           ErrorCode.CONFLICT
@@ -131,7 +162,8 @@ export async function POST(request: NextRequest) {
       // 如果是更新操作（提供了 id），检查 name 是否与其他技能重复
       const existingSkill = await getSkillByName(data.name);
       if (existingSkill && existingSkill.id !== id) {
-        endApiLog(request, startTime, 200, { reason: "Duplicate name", name: data.name, id });
+        const errorData = { code: ErrorCode.CONFLICT, data: null, message: "A skill with this name already exists" };
+        endApiLog(request, startTime, 200, errorData, { reason: "Duplicate name", name: data.name, id });
         return errorResponse(
           "A skill with this name already exists",
           ErrorCode.CONFLICT
@@ -142,6 +174,7 @@ export async function POST(request: NextRequest) {
     const skill: Skill = {
       ...data,
       id: skillId,
+      slug: skillSlug,
       tags: processedTags,
     };
 
@@ -149,22 +182,23 @@ export async function POST(request: NextRequest) {
     const updatedSkill = await upsertSkill(skill);
 
     if (!updatedSkill) {
-      endApiLog(request, startTime, 200, { skillId, reason: "Upsert failed" });
+      const errorData = { code: ErrorCode.INTERNAL_ERROR, data: null, message: "Failed to create or update skill" };
+      endApiLog(request, startTime, 200, errorData, { skillId, reason: "Upsert failed" });
       return errorResponse(
         "Failed to create or update skill",
         ErrorCode.INTERNAL_ERROR
       );
     }
 
-    endApiLog(request, startTime, 200, { skillId, operation: id ? "update" : "create" });
-    return successResponse(
-      updatedSkill,
-      id ? "Skill updated successfully" : "Skill created successfully"
-    );
+    const successMsg = id ? "Skill updated successfully" : "Skill created successfully";
+    const responseData = { code: 0, data: updatedSkill, message: successMsg };
+    endApiLog(request, startTime, 200, responseData, { skillId, operation: id ? "update" : "create" });
+    return successResponse(updatedSkill, successMsg);
   } catch (error) {
     logError(request, error, { operation: "upsert skill" });
     if (startTime) {
-      endApiLog(request, startTime, 200);
+      const errorData = { code: ErrorCode.INTERNAL_ERROR, data: null, message: "Internal Server Error" };
+      endApiLog(request, startTime, 200, errorData);
     }
     return errorResponse("Internal Server Error", ErrorCode.INTERNAL_ERROR);
   }

@@ -83,18 +83,26 @@ export function logResponse(
   request: NextRequest,
   statusCode: number,
   duration?: number,
+  responseData?: any,
   additionalInfo?: Record<string, any>
 ): void {
   const method = request.method;
   const path = new URL(request.url).pathname;
   const level = statusCode >= 500 ? LogLevel.ERROR : statusCode >= 400 ? LogLevel.WARN : LogLevel.INFO;
 
+  const logInfo: Record<string, any> = {
+    duration: duration ? `${duration}ms` : undefined,
+    ...additionalInfo,
+  };
+
+  // 添加响应数据
+  if (responseData !== undefined) {
+    logInfo.response = responseData;
+  }
+
   console.log(
     `[${formatTimestamp()}] [${level}] [RESPONSE] ${method} ${path} - ${statusCode}`,
-    {
-      duration: duration ? `${duration}ms` : undefined,
-      ...additionalInfo,
-    }
+    logInfo
   );
 }
 
@@ -138,8 +146,9 @@ export function endApiLog(
   request: NextRequest,
   startTime: number,
   statusCode: number,
+  responseData?: any,
   additionalInfo?: Record<string, any>
 ): void {
   const duration = Date.now() - startTime;
-  logResponse(request, statusCode, duration, additionalInfo);
+  logResponse(request, statusCode, duration, responseData, additionalInfo);
 }

@@ -3,6 +3,7 @@ import type { Category, Skill } from "@/data/skills";
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "@/db/schema";
 import { eq, and, or, like, desc, asc, inArray, sql } from "drizzle-orm";
+import { pinyin } from "pinyin-pro";
 
 /**
  * 获取 D1 数据库实例
@@ -65,6 +66,7 @@ export async function getSkillById(id: string): Promise<Skill | null> {
 
   return {
     ...result,
+    slug: result.slug || undefined,
     descriptionZh: result.descriptionZh || undefined,
     content: result.content || undefined,
     contentZh: result.contentZh || undefined,
@@ -101,6 +103,44 @@ export async function getSkillByName(name: string): Promise<Skill | null> {
 
   return {
     ...result,
+    slug: result.slug || undefined,
+    descriptionZh: result.descriptionZh || undefined,
+    content: result.content || undefined,
+    contentZh: result.contentZh || undefined,
+    author: result.author || undefined,
+    category: result.category as Category,
+    featured: result.featured === 1,
+    official: result.official === 1,
+    tags: tags.length > 0 ? tags.map((t) => t.tag) : undefined,
+  };
+}
+
+/**
+ * 根据 slug 获取单个技能
+ * @param slug 技能 slug
+ * @returns 技能对象或 null
+ */
+export async function getSkillBySlug(slug: string): Promise<Skill | null> {
+  const db = getDB();
+  if (!db) {
+    return null;
+  }
+
+  const result = await db.query.skills.findFirst({
+    where: eq(schema.skills.slug, slug),
+  });
+
+  if (!result) {
+    return null;
+  }
+
+  const tags = await db.query.skillTags.findMany({
+    where: eq(schema.skillTags.skillId, result.id),
+  });
+
+  return {
+    ...result,
+    slug: result.slug || undefined,
     descriptionZh: result.descriptionZh || undefined,
     content: result.content || undefined,
     contentZh: result.contentZh || undefined,
@@ -206,6 +246,7 @@ export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> 
     const tags = tagsBySkillId.get(s.id);
     return {
       ...s,
+      slug: s.slug || undefined,
       descriptionZh: s.descriptionZh || undefined,
       content: s.content || undefined,
       contentZh: s.contentZh || undefined,
@@ -347,7 +388,20 @@ export async function upsertSkill(skill: Skill): Promise<Skill | null> {
   const db = getDB();
   if (!db) return null;
 
-  const { tags, featured, official, ...skillData } = skill;
+  const { tags, featured, official, slug, ...skillData } = skill;
+
+  // 确保 slug 有值，如果没有则生成（中文转拼音）
+  let finalSlug = slug;
+  if (!finalSlug) {
+    const pinyinText = pinyin(skill.name, { toneType: "none", type: "array" }).join("-");
+    finalSlug = pinyinText
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, "-")
+      .replace(/[^a-z0-9\-]/g, "")
+      .replace(/-+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
 
   try {
     // 注意：Cloudflare D1 不支持 db.transaction()，需要手动执行多个操作
@@ -356,6 +410,7 @@ export async function upsertSkill(skill: Skill): Promise<Skill | null> {
       .insert(schema.skills)
       .values({
         ...skillData,
+        slug: finalSlug,
         featured: featured ? 1 : 0,
         official: official ? 1 : 0,
         updatedAt: sql`CURRENT_TIMESTAMP`,
@@ -364,6 +419,7 @@ export async function upsertSkill(skill: Skill): Promise<Skill | null> {
         target: schema.skills.id,
         set: {
           ...skillData,
+          slug: finalSlug,
           featured: featured ? 1 : 0,
           official: official ? 1 : 0,
           updatedAt: sql`CURRENT_TIMESTAMP`,
