@@ -90,7 +90,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     for (const skill of allSkills) {
       entries.push({
         url: new URL(
-          localizedPath(typedLocale, `/skills/${skill.id}`),
+          localizedPath(typedLocale, `/skills/${skill.slug || skill.id}`),
           SITE_URL
         ).toString(),
         lastModified: skillsLastModified,

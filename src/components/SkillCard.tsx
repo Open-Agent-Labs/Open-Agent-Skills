@@ -15,7 +15,7 @@ export function SkillCard({ skill, locale }: SkillCardProps) {
 
   return (
     <Link
-      href={`/skills/${skill.id}`}
+      href={`/skills/${skill.slug || skill.id}`}
       className="group block p-6 rounded-xl bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 hover:border-blue-400 dark:hover:border-blue-500 transition-all duration-200 hover:shadow-lg cursor-pointer"
     >
       <div className="flex items-start gap-4">

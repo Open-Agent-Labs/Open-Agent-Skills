@@ -12,7 +12,7 @@ import { SiteHeader } from "@/components/SiteHeader";
 import { SkillCard } from "@/components/SkillCard";
 import type { Skill } from "@/data/skills";
 import { getCategoryById } from "@/data/categories";
-import { getSkillById, getSkills } from "@/lib/d1";
+import { getSkillBySlug, getSkills } from "@/lib/d1";
 import type { Locale } from "@/i18n/routing";
 import { parseGitHubUrl, fetchRepoMeta } from "@/lib/github";
 import {
@@ -27,16 +27,28 @@ import {
 
 export const dynamic = "force-dynamic";
 
-const getSkillCached = cache(async (id: string): Promise<Skill | null> => getSkillById(id));
+const getSkillCached = cache(async (slug: string): Promise<Skill | null> => getSkillBySlug(slug));
+
+export async function generateStaticParams(): Promise<{ locale: string; slug: string }[]> {
+  const skills = await getSkills({ limit: 10000 });
+  const locales = ["en", "zh"];
+  
+  return locales.flatMap((locale) =>
+    skills.map((skill) => ({
+      locale,
+      slug: skill.slug || skill.id,
+    }))
+  );
+}
 
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ locale: string; id: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
   const typedLocale = locale as Locale;
-  const skill = await getSkillCached(id);
+  const skill = await getSkillCached(slug);
 
   if (!skill) {
     return {};
@@ -46,7 +58,7 @@ export async function generateMetadata({
   const description =
     typedLocale === "zh" ? skill.descriptionZh || skill.description : skill.description;
   const title = formatTitle(`${skill.name} | ${SITE_NAME}`);
-  const path = `/skills/${skill.id}`;
+  const path = `/skills/${skill.slug || skill.id}`;
 
   return {
     title,
@@ -79,13 +91,13 @@ export async function generateMetadata({
 export default async function SkillDetailPage({
   params,
 }: {
-  params: Promise<{ locale: string; id: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }) {
-  const { locale, id } = await params;
+  const { locale, slug } = await params;
   const typedLocale = locale as Locale;
   setRequestLocale(locale);
 
-  const skill = await getSkillCached(id);
+  const skill = await getSkillCached(slug);
   if (!skill) {
     notFound();
   }
@@ -99,7 +111,7 @@ export default async function SkillDetailPage({
     .slice(0, 3);
   const description = locale === "zh" ? skill.descriptionZh || skill.description : skill.description;
   const overviewContent = locale === "zh" ? skill.contentZh || skill.content : skill.content;
-  const skillUrl = buildUrl(typedLocale, `/skills/${skill.id}`).toString();
+  const skillUrl = buildUrl(typedLocale, `/skills/${skill.slug || skill.id}`).toString();
   const skillJsonLd = {
     "@context": "https://schema.org",
     "@type": "CreativeWork",

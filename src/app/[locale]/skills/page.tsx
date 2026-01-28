@@ -82,7 +82,7 @@ export default async function SkillsPage({
         "@type": "CreativeWork",
         name: skill.name,
         description: locale === "zh" ? skill.descriptionZh || skill.description : skill.description,
-        url: `${SITE_URL}${locale === "zh" ? "/zh" : ""}/skills/${skill.id}`,
+        url: `${SITE_URL}${locale === "zh" ? "/zh" : ""}/skills/${skill.slug || skill.id}`,
       },
     })),
   };
