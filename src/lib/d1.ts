@@ -219,7 +219,7 @@ export async function getSkills(params: GetSkillsParams = {}): Promise<Skill[]> 
 
   const skillResults = await db.query.skills.findMany({
     where: and(...whereConditions),
-    orderBy: [desc(schema.skills.featured), desc(schema.skills.official), asc(schema.skills.name)],
+    orderBy: [desc(schema.skills.createdAt)],
     limit,
     offset,
   });
